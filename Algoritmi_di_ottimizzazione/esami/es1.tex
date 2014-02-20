@@ -1,0 +1,166 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[color=yellow]{todonotes}
+\usepackage{alltt}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 1}
+
+Dati $n$ oggetti ed un contenitore, ad ogni oggetto $j=1,\dots,n$ sono
+associati un peso $p_j$ ed un costo $c_j$ (con $p_j$ e $c_j$ interi
+positivi). Si vuole determinare un sotto insieme $M$ degli $n$ oggetti
+in modo tale che:
+
+\begin{itemize}
+\item la somma dei pesi degli oggetti in $M$ non sia inferiore ad un
+  valore prefissato $a$;
+\item la cardinalit\`a di $M$ sia non inferiore ad un valore
+  prefissato $b$;
+\item la somma dei costi degli oggetti in $M$ sia minima.
+\end{itemize}
+
+Un possibile modello \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z = \min \sum\limits_{j=1}^n c_jx_j$ & & & \\
+$\qquad \sum\limits_{j = 1}^n p_jx_j \geq a$ & & & (a)\\
+$\qquad \sum\limits_{j=1}^n x_j \geq b$ & & & (b)\\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (c) \\
+\end{tabular}
+\end{center}
+
+\section*{Punto 1}
+
+\textit{Determinare \textbf{buoni} (quindi pi\`u di uno) lower bound
+  di tipo lagrangiano calcolabili mediante procedure aventi
+  complessit\`a $O(n \cdot \log n)$ e descrivere le corrispondenti
+  procedure di tipo subgradiente.}
+
+\
+
+Possiamo ad esempio rilassare il primo vincolo (con moltiplicatore
+$\lambda \geq 0$ ottenendo:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z = \min \sum\limits_{j=1}^n c_jx_j + \lambda (a - \sum\limits_{j = 1}^n
+  p_jx_j) $ & & & \\
+  $\qquad \sum\limits_{j=1}^n x_j \geq \lambda b$ & & & \\
+  $\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & \\
+\end{tabular}
+\end{center}
+
+Il calcolo dei costi lagrangiani richiede $O(n)$.
+
+Il problema ottenuto \`e KP01-min. Prima di procedere alla risoluzione
+con Dantzig (che richiede $O(n \log n)$ \`e necessaria una fase di
+\textbf{preprocessing} che includa in soluzione tutti gli elementi con
+costo negativo. Dopo aver fatto ci\`o ($O(n)$) si pu\`o procedere
+all'utilizzo di \textbf{Dantzig} sul \textbf{rilassamento continuo}.
+
+\vspace{20pt}
+\begin{tabular}{l}
+$\bar{z}:= 0$, $\bar{b} := 0$;\\
+\textbf{FOR} $j:=1,\dots,n$ \textbf{DO}\\
+$\qquad$ \textbf{IF} $\tilde{c}_j \leq 0$\\
+$\qquad\qquad \tilde{x}_j := 1$, $\bar{z}:=\bar{z}+\tilde{c};
+\bar{b}++$\\
+$\qquad$ \textbf{ELSE} $x_j := 0$\\
+\textbf{IF} $\bar{b} < b$\\
+$\qquad$ \textit{Rilassamento continuo}\\
+$\qquad$ \textit{Dantzig} $O(n \log n)$\\
+\end{tabular}
+\vspace{20pt}
+
+Lo stesso si poteva ottenere rilassando invece il secondo vincolo
+(sempre con $\lambda \geq 0$):
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z = \min \sum\limits_{j=1}^n c_jx_j + u (b - \sum\limits_{j=1}^n x_j)$ & & & \\
+  $\qquad \sum\limits_{j = 1}^n p_jx_j \geq a$ & & & \\
+  $\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & \\
+\end{tabular}
+\end{center}
+
+Anche qui i costi lagrangiani si ottengono in $O(n)$. Il lower bound
+pu\`o essere calcolato come prima.
+
+\
+
+Per quanto riguarda le procedure di ottimizzazione subgradiente, i
+subgradienti sono (rispettivamente): $s(\lambda) = a -
+\sum\limits_{j=1}^n p_j x_j$ e $s(u) = b - \sum\limits_{j=1}^n x_j$.
+Le procedure di aggiornamento dei subgradienti sono entrambe col segno
++, quindi $\lambda = \max(0, \lambda + \sigma s(\lambda))$ e $u =
+\max(0, u + \sigma s(u))$. Il lower bound si aggiorna in entrambi i
+casi con $LB = \max (LB, \bar{z})$.
+
+\section*{Punto 2}
+
+\textit{Determinare un buon lower bound di tipo surrogato calcolabile mediante
+una procedura di complessit\`a $O(n)$ e descrivere la corrispondente
+procedura di tipo subgradiente.}
+
+\
+
+Il rilassamento surrogato si pu\`o ottenere in un unico modo nel
+problema dato, cio\`e prendendo sia il primo che il secondo
+vincolo. Il problema rilassato \`e quindi:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z = \min \sum\limits_{j=1}^n c_jx_j$ & & & \\
+$\qquad \lambda\sum\limits_{j = 1}^n p_jx_j + u \sum\limits_{j=1}^n
+x_j \geq \lambda \cdot a + u\cdot b$ & & & \\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & \\
+\end{tabular}
+\end{center}
+
+Quindi:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z = \min \sum\limits_{j=1}^n c_jx_j$ & & & \\
+$\qquad \sum\limits_{j = 1}^n w_jx_j \geq d$ & & & \\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & \\
+\end{tabular}
+\end{center}
+
+Importante \`e sottolineare che i moltiplicatori $\lambda$ e $u$
+devono essere $\geq 0$ in quanto i vincoli rilassati sono di
+disuguaglianza. Il problema ottenuto \`e KP01-min, dunque si pu\`o
+risolvere, dopo averne fatto il \textbf{rilassamento continuo}, con
+\textbf{Balas-Zemel} in $O(n)$. Non \`e necessario il preprocessing in
+quanto i coefficienti saranno sicuramente positivi.
+
+\
+
+Per quanto riguarda l'ottimizzazione subgradiente, possiamo
+innanzitutto dire quali siano i subgradienti:
+
+\begin{itemize}
+\item $s(\lambda):=a-\sum\limits_{j=1}^n p_jx_j$
+\item $s(u) := b-\sum\limits_{j=1}^n x_j$
+\end{itemize}
+
+Sia il lower bound, che i moltiplicatori, si aggiornano con le formule
+viste in precedenza per i rilassamenti lagrangiani.
+
+\section*{Punto 3}
+
+\textit{Trasformare il problema dato in modo da ottenere un problema
+equivalente con funzione obiettivo da massimizzare e descrivere una
+procedura di programmazione dinamica per determinare la corrispondente
+soluzione ottima.}
+
+\
+
+La programmazione dinamica non fa parte del programma di quest'anno.
+
+
+\end{document}

@@ -1,0 +1,371 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 3}
+
+Da un deposito si devono servire $m$ clienti. Tali clienti possono
+essere serviti tramite $n$ viaggi diversi. Ciascun cliente $i$
+($i=1,\dots,m$) pu\`o essere servito da un sottoinsieme $v_i$ di
+viaggi (con $V_i \subset \{1,\dots,n\}$). Ciascun viaggio $j$
+($j=1,\dots,n$) ha un costo $c_j$ ed un tempo di viaggio $t_j$ (con
+$c_j$ e $t_j$ non negativi).
+
+Si deve determinare un sottoinsieme $S$ degli $n$ viaggi in modo che:
+
+\begin{itemize}
+\item ciascun cliente sia servito da almeno un viaggio di $S$;
+\item la somma dei costi dei viaggi di $S$ sia minima;
+\item la somma dei tempi di viaggio dei viaggi di $S$ sia non
+  inferiore ad un valore prefissato $d$.
+\end{itemize}
+
+Un possibile modello \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z = \min \sum\limits_{j=1}^n c_jx_j$ & & & (a)\\
+$\qquad \sum\limits_{j\in V_i}x_j \geq 1$ & & $i=1,\dots,m$ & (b)\\
+$\qquad \sum\limits_{j=1}^n t_jx_j \geq d$ & & & (c)\\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+\section*{Punto 1}
+
+\textit{Determinare \textbf{buoni} lower bound di tipo lagrangiano
+  aventi complessit\`a $O(r+n)$ (con $r=\sum_{i=1}^m|V_i|$) e
+  descrivere le corrispondenti procedure subgradiente.}
+
+\subsection*{Rilassamento lagrangiano 1}
+
+Il vincolo (b) veniva fornito anche nella forma:
+
+$$
+\sum\limits_{j=1}^n a_{ij}x_j \geq 1 \qquad i=1,\dots,m
+$$
+
+ma noi preferiamo nel modo indicato precedentemente in quanto solo per
+esaminare la matrice $A_{ij}$ abbiamo una complessit\`a di $O(n\cdot
+m)$, quindi sfo\-re\-rem\-mo il vincolo dato che $r = \sum_{i=1}^m |V_i|$
+\`e sempre $\leq m\cdot n$. Per definire l'insieme dei $V_i$ abbiamo una
+complessit\`a $O(r)$. 
+
+\
+
+Il modello \`e molto simile a quello del \textbf{Set Covering
+  Problem}; l'unica differenza risiede nella presenza del vincolo
+$(c)$. Un possibile rilassamento \`e quindi quello che coinvolge
+questo vincolo. Portandolo in funzione obiettivo otterremmo
+l'SCP. Questo problema \`e $\mathcal{NP}$-difficile, perci\`o va
+rilassato ulteriormente se vogliamo risolverlo in tempo proporzionale
+a $r$.
+
+Per risolvere SCP dobbiamo quindi fare un altro rilassamento che pu\`o
+ad esempio essere il \textbf{rilassamento lagrangiano} dei vincoli di
+copertura (b), oppure il \textbf{rilassamento surrogato} degli stessi
+(che porta a KP-min il cui rilassamento continuo si risolve in
+$O(r)$). Tutti i rilassamenti che abbiamo visto per SCP portano a
+problemi che si risolvono in tempo proporzionale al numero di elementi
+pari a 1 nella matrice $A_{ij}$, quindi $r$.
+
+\
+
+Quando abbiamo fatto il rilassamento del SCP abbiamo definito oltre
+agli insiemi $J_i$ (che corrispondono ai nostri $V_i$) anche gli
+insiemi $I_j$. I primi sono gli insiemi contenenti le colonne $j$ che
+coprono la riga $i$, i secondi gli insiemi contenenti le righe $i$
+coperte dalla colonna $j$. Qui li chiamiamo $B_j$
+($j=1,\dots,n$). Questi sottoinsiemi ci servono per poter calcolare in
+modo efficiente i costi lagrangiani. Vediamo come si possano ricavare
+i $B_j$ dai $V_i$:
+
+$$
+B_j := \{ i : j\in V_i\}
+$$
+
+La procedura per costruirli \`e dunque:
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $j=1,\dots,n$ \textbf{DO} $B_j := 0$\\
+\textbf{FOR} $i=1,\dots,m$ \\
+$\qquad$ \textbf{FOR} $j \in V_i$ \textbf{DO}\\
+$\qquad\qquad B_j := B_j \cup \{i\}$\\
+\end{tabular}
+\vspace{20pt}
+
+Abbiamo ottenuto in tempo $O(n)$ per l'inizializzazione pi\`u $O(r)$
+per riempire i sottoinsiemi, quindi $O(r+n)$. Stiamo ancora dentro il
+numero di esecuzioni.
+
+\
+
+Ritorniamo dunque ai rilassamenti. Facciamo il rilassamento
+lagrangiano dei vincoli di copertura (b). Abbiamo bisogno di $m$
+moltiplicatori $\lambda_i \geq 0$. I vincoli da rilassare verranno
+inseriti in funzione obiettivo nella forma \textit{secondo membro meno
+  primo membro}. Usiamo questa forma per ottenere un termine $\leq 0$
+e ci\`o \`e necessario dato che il problema \`e di minimizzazione.
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z(\lambda) = \min \sum\limits_{j=1}^n c_jx_j - \sum\limits_{i=1}^m
+\lambda_i(1-\sum\limits_{j\in V_i}x_j)$ & & & (a)\\
+$\qquad \sum\limits_{j=1}^n t_jx_j \geq d$ & & & (c)\\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+Fatto ci\`o possiamo definire i costi lagrangiani. Riscriviamo la
+funzione o\-biet\-ti\-vo
+
+$$
+z(\lambda) = \sum\limits_{i=1}^m \lambda_i + \min \sum\limits_{j=1}^n
+c_jx_j + \sum\limits_{i=1}^m\sum\limits_{j\in V_i}\lambda_ix_j
+$$
+
+Adesso facciamo un passaggio che ci consente di portare anche
+nell'ultima parte dell'espressione una sommatoria con $j$ che va da
+$1$ a $n$ in modo da poter raccogliere le $x_j$. Per farlo teniamo a
+mente la seguente equivalenza:
+
+$$
+\sum\limits_{i=1}^m\sum\limits_{j\in V_i} =
+\sum\limits_{j=1}^n\sum\limits_{i\in B_j}
+$$
+
+da cui:
+
+$$
+z(\lambda) = \sum\limits_{i=1}^m \lambda_i + \min \sum\limits_{j=1}^n
+c_jx_j + \sum\limits_{j=1}^n\sum\limits_{i\in B_j}\lambda_ix_j
+$$
+
+Come detto raccogliamo le $x_j$:
+
+$$
+z(\lambda) = \sum\limits_{i=1}^m \lambda_i + \min \sum\limits_{j=1}^n
+(c_j + \sum\limits_{i \in B_j}\lambda_i)x_j
+$$
+
+Quindi i costi lagrangiani saranno definiti da:
+
+$$
+\tilde{c}_j := c_j + \sum\limits_{i \in B_j}\lambda_i \qquad \forall
+j=1,\dots,n
+$$
+
+Determinare i costi lagrangiani in questo modo ha complessit\`a
+$O(r)$, infatti il calcolo si svolge in questo modo: 
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $j=1,\dots,n$ \textbf{DO}\\
+$\qquad \tilde{c}_j := c_j$\\
+$\qquad$\textbf{FOR} $i \in B_j$ \textbf{DO}\\
+$\qquad\qquad \tilde{c}_j := \tilde{c}_j + \lambda_i$
+\end{tabular}
+\vspace{20pt}
+
+La funzione obiettivo quindi \`e (tralasciando la sommatoria
+iniziale):
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z(\lambda) = \min \sum\limits_{j=1}^n \tilde{c}_jx_j$ & & & (a)\\
+$\qquad \sum\limits_{j=1}^n t_jx_j \geq d$ & & & (c)\\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+Quello ottenuto \`e un problema KP01-min che ha per\`o una
+particolarit\`a perch\'e i costi $\tilde{c}_j$ possono anche essere
+$\leq 0$. Non possiamo perci\`o applicare Balas-Zemel. Cosa facciamo?
+Prendiamo sicuramente tutte le variabili con costo lagrangiano
+negativo perch\'e fanno decrescere la funzione obiettivo e ci fanno
+soddisfare pi\`u facilmente il vincolo (c). Facciamo quindi un
+preprocessing che controlla il segno e assegna $x_j=1$ alle variabili
+con costo negativo. Se dopo il loro inserimento il vincolo (c) non \`e
+ancora soddisfatto, ci resta un problema in cui rimangono solo le
+variabili con costo strettamente positivo e in cui la capacit\`a non
+\`e $d$, ma quella residua dopo aver preso le variabili negative,
+$\bar{d}$. A questo problema ridotto possiamo applicare
+Balas-Zemel. La soluzione si trova quindi in $O(n)$.
+
+\
+
+La procedura subgradiente \`e esattamente analoga a quella vista a
+lezione per SCP.
+
+\subsection*{Rilassamento lagrangiano 2}
+
+L'altro rilassamento possibile \`e quello che porta il vincolo (b) in
+funzione obiettivo. Non essendoci pi\`u il vincolo di copertura avremo
+KP01-min multiplo che \`e un problema
+$\mathcal{NP}$-difficile. Rilassando i vincoli di copertura in maniera
+surrogata otteniamo KP01-min. Facendone il rilassamento continuo si
+pu\`o applicare Balas-Zemel possiamo risolverlo in tempo $O(n)$. Il
+calcolo dei costi lagrangiani si effettua in $O(r)$ come segue:
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $j=1,\dots,n$ \textbf{DO}\\
+$\qquad w_j := 0$\\
+\textbf{FOR} $j=1,\dots,n$ \textbf{DO}\\
+$\qquad$ \textbf{FOR} $i\in B_j$ \textbf{DO}\\
+$\qquad\qquad w_j := w_j + u_i$
+\end{tabular}
+\vspace{20pt}
+
+\section*{Punto 2}
+
+Determinare un buon lower bound di tipo surrogato avente complessit\`a
+$O(r+n)$ e descrivere la corrispondente procedura subgradiente.
+
+\
+
+Facciamo il rilassamento lagrangiano del vincolo (c) che essendo un
+unico vincolo richieder\`a un unico moltiplicatore $\lambda \geq
+0$. Il vincolo verr\`a portato in f.o. nella forma \textit{secondo
+  membro meno primo membro}.
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z(\lambda) = \min \sum\limits_{j=1}^n c_jx_j + \lambda (d -
+  \sum\limits_{j=1}^n t_jx_j))$ & & & (a)\\
+  $\qquad \sum\limits_{j\in V_i}x_j \geq 1$ & & $i=1,\dots,m$ & (b)\\
+  $\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+quindi con ovvi passaggi:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z(\lambda) = \lambda d + \min \sum\limits_{j=1}^n (c_j-\lambda t_j)x_j$ & & & (a)\\
+  $\qquad \sum\limits_{j\in V_i}x_j \geq 1$ & & $i=1,\dots,m$ & (b)\\
+  $\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+da cui ricaviamo che i costi lagrangiani sono $\tilde{c}_j = c_j -
+\lambda t_j$ (definiti in $O(n)$) ed il modello risultante \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z(\lambda) = \lambda d + \min \sum\limits_{j=1}^n \tilde{c}_jx_j$ & & & (a)\\
+  $\qquad \sum\limits_{j\in V_i}x_j \geq 1$ & & $i=1,\dots,m$ & (b)\\
+  $\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+\`e un problema SCP, ma con costi che possono essere negativi a
+differenza dell'SCP originale. I rilassamenti che abbiamo visto per il
+set covering si applicano a istanze in cui tutte le colonne hanno
+costi sono $\geq 0$. Cosa facciamo allora? Intanto vediamo che il
+problema \`e di minimizzazione, quindi se le colonne hanno costi
+negativi le inseriamo senz'altro in soluzione in $O(n)$. Fatto ci\`o
+bisogna quindi vedere se tutti i vincoli di copertura sono gi\`a
+soddisfatti. Non \`e detto che tutti lo siano, quindi potrebbe
+rimanere un problema SCP ridotto da risolvere. In questo problema le
+colonne son solo quelle con costi maggiori di 0, mentre le righe son
+quelle non ancora co\-per\-te. Il problema ha $O(n)$ colonne e $O(r)$
+elementi pari a 1 nella matrice dei coefficienti. Ovviamente il numero
+di colonne e di righe \`e minore o uguale a quello delle colonne e
+righe di partenza. Abbiamo ottenuto un problema
+$\mathcal{NP}$-difficile che possiamo rilassare con uno qualunque dei
+rilassamenti visti per risolverlo in $O(r)$. Posso fare quindi il
+rilassamento lagrangiano dei vincoli rimasti, oppure il rilassamento
+surrogato dei vincoli di copertura (che richiede $O(r)$ per definire i
+costi surrogati) e che ci porta ad un problema KP01 il cui
+rilassamento pu\`o essere risolto con Balas-Zemel.
+
+\
+
+La procedura subgradiente non \`e diversa da quella utilizzata nel
+problema 1.
+
+\section*{Punto 3}
+
+Determinare un rilassamento surrogato che fornisca un buon lower bound
+in $O(r+n)$ e descrivere la procedura subgradiente.
+
+\
+
+Abbiamo vari possibili rilassamenti surrogati. Cerchiamo di avere un
+unico vincolo di copertura per ricondurci a KP01-min, problema di cui
+poi realiz\-ze\-rem\-mo il rilassamento continuo.
+
+\
+
+Rilassiamo dunque tutti i vincoli (b) ed il vincolo (c). Associamo ad
+ogni vincolo di tipo (b) un moltiplicatore $\lambda_i\geq 0$ ed al
+vincolo (c) un moltiplicatore $\sigma \geq 0$. I vincoli sono entrambi
+nella forma $\geq$, pertanto, dopo averli moltiplicati per i relativi
+moltiplicatori, possono essere sommati.
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z(\lambda,\sigma) = \min \sum\limits_{j=1}^n c_jx_j$ & & & (a)\\
+$\qquad \sum\limits_{i=1}^m \lambda_i\sum\limits_{j\in V_i}x_j +
+\sigma\sum\limits_{j=1}^nt_jx_j \geq \sum\limits_{i=1}^n \lambda_i +
+\sigma d$\\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+
+Cerchiamo di raccogliere i coefficienti di $x_j$. Facciamo perci\`o lo
+stesso passaggio visto prima:
+
+$$
+\sum\limits_{j=1}^n \sum\limits_{i\in B_j} \lambda_i x_j +
+\sigma\sum\limits_{j=1}^nt_jx_j \geq \sum\limits_{i=1}^n \lambda_i +
+\sigma d
+$$
+
+Quindi:
+
+$$
+\sum\limits_{j=1}^n (\sum\limits_{i\in B_j} \lambda_i +
+\sigma t_j)x_j \geq \sum\limits_{i=1}^n \lambda_i +
+\sigma d
+$$
+
+che riscriviamo pi\`u comodamente come:
+
+$$
+\sum\limits_{j=1}^n \tilde{p}_jx_j \geq \tilde{d}
+$$
+
+I profitti surrogati sono stati definiti in tempo $O(r)$ perch\'e il
+calcolo di tutti i $\tilde{p}_j$ richiede in fondo di fare tante somme
+quanti sono gli elementi degli insiemi $B_j$ che in tutto sono $r$.
+
+\
+
+Il problema ottenuto \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+$z(\lambda,\sigma) = \min \sum\limits_{j=1}^n c_jx_j$ & & & (a)\\
+$\qquad \sum\limits_{j=1}^n \tilde{p}_jx_j \geq \tilde{d}$ & & & (bc) \\
+$\qquad x_j \in\{0,1\}$ & & $j = 1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+\`E un problema KP01 in forma di minimo. Tutti i $\tilde{p}_j$ ed i
+costi sono $\geq 0$ quindi \`e proprio un classico KP01. Possiamo
+farne il rilassamento continuo e risolviamo con Balas-Zemel in tempo
+$O(n)$.
+
+\
+
+La procedura subgradiente \`e quella vista per la soluzione del
+problema 1.
+
+\end{document}

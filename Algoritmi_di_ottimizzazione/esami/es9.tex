@@ -1,0 +1,302 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[color=yellow]{todonotes}
+\usepackage{alltt}
+\hyphenation{pre-pro-ces-sing}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 9}
+
+Sono dati $n$ depositi ed $m$ clienti. Ciascun cliente $i$
+($i=1,\dots,m$) ha un potenziale profitto $p_i \geq 0$. Ogni deposito
+$j$ ($j=1,\dots,n$) ha un costo $c_j \geq 0$ ed \`e in grado di
+servire un sottoinsieme $R_j$ degli $m$ clienti. In particolare per
+ogni coppia deposito-cliente \`e nota la quantit\`a $a_{ij}$ con
+$a_{ij}=1$ se il deposito $j$ \`e in grado di servire il cliente $i$,
+cio\`e se $i \in R_j$, 0 in caso contrario. Per ogni sottoinsieme $S$
+dei depositi, il corrispondente profitto globale \`e dato dalla
+differenza tra la somma dei profitti dei clienti che possono essere
+serviti dai depositi di $S$ e la somma dei costi dei depositi di
+$S$. Si deve determinare il sottoinsieme $S*$ che contiene al massimo
+$d$ depositi ($0 < d \leq n$) che massimizza il profitto globale ed il
+cui costo totale sia non inferiore ad un valore dato $b$ (con $b \geq
+0$).
+
+Si denoti con $h$ il numero di elementi della matrice $(a_{ij})$ di
+valore 1 (cio\`e $h = \sum_{j=1}^n | R_j |$) con $h\geq n$, $h \geq
+m$).
+
+Un possibile modello \`e:
+
+\begin{center}
+\begin{tabular}{llp{1cm}l}
+$\max z = \sum\limits_{i=1}^m p_iy_i - \sum\limits_{j=1}^n c_jx_j$\\
+$\qquad \sum\limits_{j=1}^n a_{ij}x_j \geq y_i$ & $i=1,\dots,m$ & (a)\\
+$\qquad \sum\limits_{j=1}^n x_j \leq d$ & & (b) \\
+$\qquad \sum\limits_{j=1}^n c_jx_j \geq b$ & & (c) \\
+$\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$ & (d) \\
+$\qquad y_i \in \{0,1\}$ & $i=1,\dots,m$ & (e) \\
+\end{tabular}
+\end{center}
+
+\section*{Punto 1}
+
+\textit{Si determinino 3 buoni upper bound di tipo lagrangiano
+  risolubili in $O(h)$.}
+
+\subsection*{Rilassamento 1}
+
+Come prima opzione effettuiamo il rilassamento lagrangiano dei vincoli
+(a). Prima di iniziare per\`o definiamo a partire dagli insiemi $R_j$
+gli insiemi $J_i$ contenenti tutti i depositi $j$ che coprono un
+cliente $i$ fissato. Per definirli facciamo:
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $i=1,\dots,m$ \textbf{DO}\\
+$\qquad J_i := \{\}$\\
+\textbf{FOR} $j=1,\dots,n$ \textbf{DO}\\
+$\qquad$ \textbf{FOR} $i$ \textbf{IN} $R_j$ \textbf{DO}\\
+$\qquad\qquad J_i := J_i \cup j$
+\end{tabular}
+\vspace{20pt}
+
+La complessit\`a di tale operazione \`e $O(h)$, quindi siamo ancora
+entro i tempi previsti. In questo modo possiamo riscrivere il vincolo
+(a) come:
+
+$$
+\sum\limits_{j \in J_i} x_j \geq y_i
+$$
+
+Ora, facendo uso di moltiplicatori lagrangiani $\geq 0$, portiamo i
+vincoli (a) in f.o.. Ecco come cambia la funzione obiettivo:
+
+$$
+\max \sum\limits_{i=1}^m p_iy_i - \sum\limits_{j=1}^n c_jx_j +
+\sum\limits_{i=1}^m \lambda_i \Bigr ( \sum\limits_{j \in J_i} x_j -
+y_i \Bigr )
+$$
+
+e svolgendo i calcoli:
+
+$$
+\max \sum\limits_{i=1}^m \tilde{p}_iy_i + \sum\limits_{j=1}^n \tilde{c}_jx_j
+$$
+
+dove abbiamo definito (rispettivamente in $O(m)$ e in $O(n)$) profitti
+e costi lagrangiani come:
+
+\begin{itemize}
+\item $\tilde{p}_i := p_i - \lambda_i $
+\item $\tilde{c}_j := -c_j + \sum\limits_{i \in R_j} \lambda_i$
+\end{itemize}
+
+Il problema rilassato \`e quindi:
+
+\begin{center}
+\begin{tabular}{llp{1cm}l}
+$\max \sum\limits_{i=1}^m \tilde{p}_iy_i + \sum\limits_{j=1}^n \tilde{c}_jx_j$\\
+$\qquad \sum\limits_{j=1}^n x_j \leq d$ & & (b) \\
+$\qquad \sum\limits_{j=1}^n c_jx_j \geq b$ & & (c) \\
+$\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$ & (d) \\
+$\qquad y_i \in \{0,1\}$ & $i=1,\dots,m$ & (e) \\
+\end{tabular}
+\end{center}
+
+che come possiamo vedere subito si pu\`o spezzare nei due problemi:
+
+\begin{center}
+\begin{tabular}{llp{1cm}l}
+$\max \sum\limits_{j=1}^n \tilde{c}_jx_j$\\
+$\qquad \sum\limits_{j=1}^n x_j \leq d$ & & (b) \\
+$\qquad \sum\limits_{j=1}^n c_jx_j \geq b$ & & (c) \\
+$\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+e
+
+\begin{center}
+\begin{tabular}{llp{1cm}l}
+$\max \sum\limits_{i=1}^m \tilde{p}_iy_i$\\
+$\qquad y_i \in \{0,1\}$ & $i=1,\dots,m$ & (e) \\
+\end{tabular}
+\end{center}
+
+Nel secondo problema il calcolo dell'upper bound \`e banale e si pu\`o
+realizzare in $O(m)$ come:
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $i=1,\dots,m$ \textbf{DO}\\
+$\qquad$ \textbf{IF} $\tilde{p}_j \geq 0$\\
+$\qquad\qquad y_i := 1$\\
+$\qquad$ \textbf{ELSE}\\
+$\qquad\qquad y_i := 0$\\
+\end{tabular}
+\vspace{20pt}
+
+Per il primo problema invece, quello in $x$, possiamo effettuare un
+rilassamento surrogato dei vincoli (con moltiplicatori $\geq 0$ e
+portando entrambe i vincoli nella stessa forma) ed ottenere:
+
+\begin{center}
+\begin{tabular}{ll}
+$\max \sum\limits_{j=1}^n \tilde{c}_j x_j$ \\
+$\qquad \sum\limits_{j=1}^n w_j x_j \leq q$ \\
+$\qquad x_j \in \{0, 1\}$ & $j=1,\dots,n$ \\
+\end{tabular}
+\end{center}
+
+con $w_j := \alpha - \beta c_j$ e $q := \alpha d - \beta b$. Quello
+ottenuto \`e un problema KP01 il cui rilassamento continuo pu\`o
+essere risolto (dopo una fase di preprocessing che elimini gli
+elementi con costo lagrangiano minore di 0) in tempo proporzionale a
+$O(n)$ con Balas-Zemel. Visto che $n < h$ siamo apposto.
+
+\subsection*{Rilassamento 2}
+
+Rilassiamo il vincolo (a) ed il vincolo (b) con moltiplicatori $\geq
+0$. La funzione obiettivo diventa:
+
+$$
+\max z(\lambda, u) = \sum\limits_{i=1}^m p_i y_i - \sum\limits_{j=1}^n
+c_jx_j + \sum\limits_{i=1}^m \lambda_i \Bigr ( \sum\limits_{j \in J_i} x_j -
+y_j \Bigr ) + u \Bigr ( d - \sum\limits_{j=1}^n x_j \Bigr )
+$$
+
+che dopo gli opportuni raccoglimenti d\`a origine al problema:
+
+\begin{center}
+\begin{tabular}{ll}
+  $ud + \max \sum\limits_{i=1}^m y_i \tilde{p}_i - \sum\limits_{j=1}^n
+  \tilde{c}_jx_j$ \\
+$\qquad \sum\limits_{j=1}^n c_j x_j \geq b$ \\
+$\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$ \\
+$\qquad y_i \in \{0,1\}$ & $i=1,\dots,m$ \\
+\end{tabular}
+\end{center}
+
+Si ottengono due problemi; il primo, in $y$, si risolve in $O(m)$
+prendendo solo gli elementi con profitti positivi, mentre il secondo,
+in $x$, \`e un KP01-min che, dopo una fase di preprocessing in cui
+scartiamo gli elementi con costo negativo e dopo un rilassamento
+continuo, pu\`o essere risolto in $O(n)$ con Balas-Zemel.
+
+\subsection*{Rilassamento 3}
+
+Rilassiamo tutti i vincoli. La funzione obiettivo \`e:
+
+$$
+\sum\limits_{i=1}^m p_i y_i - \sum\limits_{j=1}^n c_j x_j + \lambda
+\Bigr ( d
+- \sum\limits_{j=1}^n x_j \Bigr ) + \sum\limits_{i=1}^m u_i
+\Bigr ( \sum\limits_{j \in J_i} x_j - y_i \Bigr ) + \alpha \Bigr ( \sum\limits_{j=1}^n
+c_jx_j -b \Bigr )
+$$
+
+I moltiplicatori devono essere tutti $\geq 0$. Definendo i
+costi/profitti lagrangiani (operazione che richiede al pi\`u $O(h)$)
+possiamo pervenire alla seguente formulazione:
+
+\begin{center}
+\begin{tabular}{ll}
+  $\lambda d - b \alpha + \max \sum\limits_{i=1}^m \tilde{p}_{ij}y_i +
+  \sum\limits_{j=1}^n \tilde{c}_j x_j$\\
+  $\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$\\
+  $\qquad y_i \in \{0,1\}$ & $i=1,\dots,m$\\
+\end{tabular}
+\end{center}
+
+I due problemi che si ottengono si risolvono allo stesso modo, cio\`e
+prendendo solo gli elementi con associati coefficienti positivi. I due
+problemi richiedono rispettivamente $O(m)$ e $O(n)$.
+
+\section*{Punto 2}
+
+\textit{Si determini un upper bound di tipo surrogato risolubile in
+  $O(h)$ nel caso in cui tutti i clienti debbano essere serviti.}
+
+\
+
+Nel caso in cui tutti i clienti debbano essere serviti, avremmo
+chiaramente $y_i = 1$ per ogni $i$. Quindi il problema si
+modificherebbe come segue:
+
+\begin{center}
+\begin{tabular}{llp{1cm}l}
+$\sum\limits_{i=1}^m p_i - \max \sum\limits_{j=1}^n c_jx_j$\\
+$\qquad \sum\limits_{j=1}^n a_{ij}x_j \geq 1$ & $i=1,\dots,m$ & (a)\\
+$\qquad \sum\limits_{j=1}^n x_j \leq d$ & & (b) \\
+$\qquad \sum\limits_{j=1}^n c_jx_j \geq b$ & & (c) \\
+$\qquad x_j \in \{0,1\}$ & $j=1,\dots,n$ & (d) \\
+\end{tabular}
+\end{center}
+
+Dovendo fare il rilassamento surrogato, scelgo di farlo di tutti i
+vincoli rimasti ed introduco perci\`o i moltiplicatori $\lambda_i \geq
+0$, $\alpha \geq 0$, $\beta \geq 0$. Il vincolo che ottengo \`e:
+
+$$
+\sum\limits_{i=1}^m \lambda_i \sum\limits_{j \in J_i} x_j -
+\alpha\sum\limits_{j=1}^n x_j + \beta \sum\limits_{j=1}^n c_jx_j 
+\geq
+\sum\limits_{i=1}^m \lambda_i - \alpha d + \beta b
+$$
+
+raccogliendo:
+
+$$
+\sum\limits_{j=1}^n x_j \Bigr ( \sum\limits_{i \in R_j} \lambda_i - \alpha +
+\beta c_j \Bigr ) \geq q
+$$
+
+o in forma concisa:
+
+$$
+\sum\limits_{j=1}^n w_jx_j \geq q
+$$
+
+Il problema ottenuto \`e KP01-min (perch\'e bisogna massimizzare una
+funzione obiettivo negativa). Il rilassamento continuo si pu\`o
+risolvere con Balas-Zemel in $O(n)$, mentre i moltiplicatori surrogati
+sono stati ottenuti in $O(h)$.
+
+\section*{Punto 3}
+
+\textit{Procedure subgradiente di almeno due dei rilassamenti del
+  punto 1.}
+
+\
+
+Nel primo rilassamento i subgradienti sono:
+
+\begin{itemize}
+\item $\sum\limits_{j \in J_i} x_j - y_i$  per $i=1,\dots,m$. I relativi
+  vincoli sono violati se minori di 0.
+\end{itemize}
+
+La formula di aggiornamento dei moltiplicatori prevede quindi una
+sottrazione.
+
+\
+
+Consideriamo il rilassamento 2. I subgradienti sono:
+
+\begin{itemize}
+\item $s(u) := d-\sum\limits_{j=1}^nx_j$, violato se minore di 0.
+\item $s(\lambda_i) := \sum\limits_{i=1}^n a_{ij}x_j - y_i$
+  ($i=1,\dots,m$). Questi subgradienti sono minori di zero se il
+  relativo vincolo non \`e soddisfatto, maggiori di zero se lo \`e
+  troppo.
+\end{itemize}
+
+
+Le formule di aggiornamento dei subgradiente sono perci\`o con il
+segno meno.
+
+\end{document}

@@ -1,0 +1,211 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[color=yellow]{todonotes}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 5}
+
+Si consideri il seguente problema. \`E dato un grafo orientato
+$G=(V,A)$, con $|V|=n$ e $|A|=m$, in cui ad ogni arco $(i,j)\in A$ \`e
+associato un costo positivo $c_{ij}$. Si supponga inoltre che
+l'insieme dei vertici $V$ sia partizionato in $k$ sottoinsiemi $R_1$,
+$R_2$, \dots, $R_k$ con $R_1 = \{ 1 \}$.
+
+Si deve determinare un circuito elementare di $G$ che visiti almeno un
+vertice di ciascuna delle $k$ regioni in modo tale che la somma dei
+costi degli archi del circuito sia minimo.
+
+
+Un possibile modello \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n c_{ij} x_{ij}$ & & & (a)\\
+  $\qquad \sum\limits_{j=1}^n x_{ij} = y_i$ & & $i=1,\dots,n$ & (b)\\
+  $\qquad \sum\limits_{j=1}^n x_{ij} = \sum\limits_{j=1}^n x_{ji} $ & & $i=1,\dots,n$ & (c)\\
+  $\qquad \sum\limits_{i \in R_j} y_i \geq 1$ & & $h = 1,\dots,k$ &
+  (d) \\
+  $\qquad \sum\limits_{i\in S}\sum\limits_{j\in V \textbackslash S}
+  x_{ij} \geq 1$ & & $\forall S :1\in S$ ecc... & (e) \\
+  $\qquad x_{ij} \in\{0,1\}$ & & $i,j = 1,\dots,n$ & (f) \\
+  $\qquad y_{i} \in\{0,1\}$ & & $i = 1,\dots,n$ & (g) \\
+\end{tabular}
+\end{center}
+
+\section*{Punto 1}
+
+\textit{Determinare un buon lower bound di tipo lagrangiano avente
+  complessit\`a $O(n^2)$ e descrivere la corrispondente procedura
+  subgradiente (alcuni vincoli possono eventualmente essere
+  eliminati).}
+
+\
+
+Iniziamo subito eliminando i vincoli $e$ che sono odiosi gi\`a a
+vederli. Ora scegliamo i vincoli da rilassare in modo
+lagrangiano. Possiamo portare in f.o. i vincoli $c$. Trattandosi di
+vincoli di uguaglianza useremo moltiplicatori qualunque.
+
+\
+
+Vediamo come varia la funzione obiettivo:
+
+\begin{enumerate}
+\item $LB(\lambda) = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n c_{ij}x_{ij}
++ \sum\limits_{i=1}^n\lambda_i(\sum\limits_{j=1}^nx_{ij} -
+\sum\limits_{j=1}^n x_{ji})$
+
+\item $LB(\lambda) = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n
+  c_{ij}x_{ij} + \sum\limits_{i=1}^n\lambda_i\sum\limits_{j=1}^nx_{ij}
+  - \sum\limits_{i=1}^n\lambda_i\sum\limits_{j=1}^n x_{ji}$
+
+\item $LB(\lambda) = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n
+  c_{ij}x_{ij} + \sum\limits_{i=1}^n\sum\limits_{j=1}^n\lambda_ix_{ij}
+  - \sum\limits_{i=1}^n\sum\limits_{j=1}^n\lambda_j x_{ij}$ (ho
+  invertito gli indici di $x$ nell'ultima sommatoria e di conseguenza
+  anche cambiato l'indice di $\lambda$)
+
+\item $LB(\lambda) = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n
+  \tilde{c}_{ij} x_{ij}$ con $\tilde{c}_{ij} = c_{ij} + \lambda_i -
+  \lambda_j$
+\end{enumerate}
+
+La definizione dei costi lagrangiani ha richiesto $O(n^2)$. Arrivati a
+questo punto il problema ha il seguente aspetto:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $LB(\lambda) = \min \sum\limits_{i=1}^n\sum\limits_{j=1}^n \tilde{c}_{ij} x_{ij}$ & & & (a)\\
+  $\qquad \sum\limits_{j=1}^n x_{ij} = y_i$ & & $i=1,\dots,n$ & (b)\\
+  $\qquad \sum\limits_{i \in R_j} y_i \geq 1$ & & $h = 1,\dots,k$ &
+  (d) \\
+  $\qquad x_{ij} \in\{0,1\}$ & & $i,j = 1,\dots,n$ & (f) \\
+  $\qquad y_{i} \in\{0,1\}$ & & $i = 1,\dots,n$ & (g) \\
+\end{tabular}
+\end{center}
+
+Adesso osservando il vincolo $b$ vediamo che \`e possibile anche
+sostituire le occorrenze di $\sum\limits_{j=1}^nx_{ij}$ con
+$y_i$. Otterremmo cos\`i un problema con le sole $y_i$. Come facciamo
+per\`o con i costi? Vediamo che in funzione obiettivo abbiamo $n^2$
+costi associati a $n$ variabili. Bisogna perci\`o definire dei costi
+$\hat{c}_i$ e per farlo sfruttiamo una considerazione che \`e evidente
+dal vincolo $b$: per ogni vertice $i$ possiamo avere al pi\`u un arco
+uscente, quindi trattandosi di un problema di minimizzazione prendiamo
+quello pi\`u basso. Ecco dunque come ricaviamo i nuovi costi:
+
+$$
+\hat{c}_i = \tilde{c}_{i,j(i)} = \min_{j=1,\dots,n} \{ \tilde{c}_{ij}\}
+$$
+
+La complessit\`a per definire tutti i $\hat{c}_i$ \`e $O(n^2)$. Alla
+luce di quanto fatto, il problema diventa:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $LB(\lambda) = \min \sum\limits_{i=1}^n \hat{c}_{i}$ & & & (a)\\
+  $\qquad \sum\limits_{i \in R_j} y_i \geq 1$ & & $h = 1,\dots,k$ &
+  (d) \\
+  $\qquad y_{i} \in\{0,1\}$ & & $i = 1,\dots,n$ & (g) \\
+\end{tabular}
+\end{center}
+
+Vediamo come funzioni la procedura per il calcolo del lower
+bound. In\-nan\-zi\-tut\-to ricordiamoci che quando assegnamo $y_i$
+dobbiamo assegnare anche $x_{ij}$. Ok ora procediamo ad inizializzare
+entrambe le variabili $O(n^2)$:
+
+\vspace{15pt}
+  \begin{tabular}{l}
+    \textbf{for} $i=1,\dots,n$ \textbf{do}\\
+    $\qquad y_i := 0$\\
+    $\qquad$ \textbf{for} $j=1,\dots,n$ \textbf{do}\\
+    $\qquad\qquad x_{ij} := 0$
+  \end{tabular}
+\vspace{15pt}
+
+Sicuramente possiamo prendere tutte le $y_i$ a cui \`e associato un
+costo negativo. Prendiamo contemporaneamente anche l'$x_{ij}$ la cui
+$j$ \`e associata al $\hat{c}_i$ che abbiamo definito. Quindi:
+
+\vspace{15pt}
+\begin{tabular}{l}
+  \textbf{for} $j=1,\dots,n$ \textbf{do}\\
+  $\qquad$ \textbf{if} $\hat{c}_i \leq 0$ \textbf{then} $y_i:=1$, $x_{i,j(i)}:=1$
+\end{tabular}
+\vspace{15pt}
+
+e questo passo ha complessit\`a $O(n)$. Finito questo passo non siamo
+comunque sicuri che il vincolo che \`e rimasto nel problema sia
+soddisfatto. Dobbiamo perci\`o scorrere i $k$ sottoinsiemi e vedere se
+la somma delle $y_i$ al loro interno \`e nulla. In tal caso si deve
+procedere a selezionare l'elemento in quella regione che abbia costo
+minore ed inserirlo in soluzione assieme al relativo $x_{i,j(i)}$.
+
+\vspace{15pt}
+\begin{tabular}{l}
+\textbf{for} $h=1\dots,k$ \textbf{do}\\
+$\qquad$ \textbf{if} $\sum\limits_{i \in R_h}y_i =0$ \textbf{then}\\
+$\qquad\qquad$ sia $l$ tale che $\hat{c}_l = \min\{ \hat{c}_i  : i\in
+R_h\}$\\
+$\qquad\qquad y_l :=1$, $x_{l,j(l)}:=1$
+\end{tabular}
+\vspace{15pt}
+
+Questo passo ha complessit\`a $O(n)$. In totale dunque il lower bound
+viene calcolato in $O(n)$.
+
+\subsection*{Procedura subgradiente}
+
+Definiamo intanto i subgradienti:
+
+$$
+s(\lambda_i) := \sum\limits_{j=1}^n x_{ij} - \sum\limits_{j=1}^n
+x_{ji} \qquad (i=1,\dots,m)
+$$
+
+Ora dobbiamo valutare come aggiornare i moltiplicatori. Un vincolo $i$
+\`e violato se il relativo subgradiente non \`e uguale a 0. Se \`e
+minore, allora vuol dire che sono di pi\`u gli archi entranti in $i$
+rispetto a quelli uscenti. In tal caso diminuendo $\lambda_i$
+diminuisce il costo di $\tilde{c}_{ij}$ rendendo pi\`u probabile
+l'inclusione al giro successivo di archi uscenti. Vale ovviamente il
+contrario se $s(\lambda_i) > 0$. La procedura di aggiornamento dei
+moltiplicatori \`e dunque:
+
+$$
+\lambda_i := \lambda_i + \beta \frac{UB-LB}{\sum\limits_{i=1}^n
+  s(\lambda_i)^2} s(\lambda_i)
+$$
+
+\section*{Punto 2}
+
+\textit{Operare come nel punto 1, ma considerando il caso in cui
+  s'impone che il circuito elementare visiti esattamente un vertice di
+  ciascuna delle $k$ regioni}.
+
+\
+
+Il vincolo $d$ diventa di uguaglianza. Ci\`o che cambia \`e soltanto
+la procedura di calcolo del Lower Bound che diventa:
+
+\vspace{15pt}
+  \begin{tabular}{l}
+    \textbf{for} $i=1,\dots,n$ \textbf{do}\\
+    $\qquad y_i := 0$\\
+    $\qquad$ \textbf{for} $j=1,\dots,n$ \textbf{do}\\
+    $\qquad\qquad x_{ij} := 0$\\
+\textbf{for} $h=1\dots,k$ \textbf{do}\\
+$\qquad$ \textbf{if} $\sum\limits_{i \in R_h}y_i =0$ \textbf{then}\\
+$\qquad\qquad$ sia $l$ tale che $\hat{c}_l = \min\{ \hat{c}_i  : i\in
+R_h\}$\\
+$\qquad\qquad y_l :=1$, $x_{l,j(l)}:=1$
+\end{tabular}
+\vspace{15pt}
+
+La procedura subgradiente rimane invece identica a prima.
+
+\end{document}

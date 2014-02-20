@@ -1,0 +1,164 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[color=yellow]{todonotes}
+\hyphenation{pro-fit-ti}
+\hyphenation{sub-gra-dien-te}
+\hyphenation{pos-sia-mo}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 4}
+
+Dati $m$ articoli, ciascuno caratterizzato da un peso $p_j > 0$
+($j=1,\dots,m$) ed $n$ veicoli con capacit\`a $a_i>0$ ($i=1,\dots,n$),
+si devono determinare gli articoli da caricare sui veicoli in modo
+tale che:
+
+\begin{enumerate}
+\item il peso totale sul veicolo $i$ non ecceda la capacit\`a $a_i$;
+\item ciascun articolo $j$ sia caricato su non pi\`u di un veicolo;
+\item il peso globale degli articoli caricati sia massimo;
+\item il numero globale degli articoli caricati non sia inferiore ad
+  un valore prefissato $k$.
+\end{enumerate}
+
+Un possibile modello \`e: 
+
+\begin{center}
+\begin{tabular}{lll}
+$\max z = \sum\limits_{i=1}^n \sum\limits_{j=1}^m p_j x_{ij}$ & & (1)\\
+$\qquad \sum\limits_{j=1}^m p_j x_{ij} \leq a_i$ & $i=1,\dots,n$ & (2) \\
+$\qquad \sum\limits_{i=1}^n x_{ij} \leq 1$ & $j=1,\dots,m$ & (3) \\
+$\qquad \sum\limits_{i=1}^n\sum\limits_{j=1}^m x_{ij} < k$ & & (4) \\
+$\qquad x_{ij} \in \{0, 1 \}$ & $i=1,\dots,n$, $j=1,\dots,m$ & (5) \\
+\end{tabular}
+\end{center}
+
+\section*{Punto 1}
+
+\textit{Considerando il rilassamento surrogato dei vincoli (2) con
+  moltiplicatori tutti pari a 1, determinare un buon upper bound con
+  complessit\`a $O(n+m)$ e descrivere la corrispondente procedura
+  subgradiente.}
+
+\
+
+Dopo il rilassamento surrogato richiesto il modello \`e:
+
+\begin{center}
+\begin{tabular}{lll}
+$\max z(\lambda) = \sum\limits_{i=1}^n \sum\limits_{j=1}^m p_j x_{ij}$ & & (1)\\
+$\qquad \sum\limits_{i=1}^m\sum\limits_{j=1}^m p_j x_{ij} \leq
+\sum\limits_{i=1}^n a_i$ & & (2) \\
+$\qquad \sum\limits_{i=1}^n x_{ij} \leq 1$ & $j=1,\dots,m$ & (3) \\
+$\qquad \sum\limits_{i=1}^n\sum\limits_{j=1}^m x_{ij} < k$ & & (4) \\
+$\qquad x_{ij} \in \{0, 1 \}$ & $i=1,\dots,n$, $j=1,\dots,m$ & (5) \\
+\end{tabular}
+\end{center}
+
+Poniamo $\sum_{i=1}^n a_i = b$ e questo ha complessit\`a $O(n)$. A
+questo punto possiamo porre $y_j = \sum\limits_{i=1}^n x_{ij} $ ed
+avere:
+
+\begin{center}
+\begin{tabular}{ll}
+$\max \sum\limits_{j=1}^m p_jy_j$\\
+$\qquad \sum\limits_{j=1}^m p_j y_j \leq b$ \\
+$\qquad \sum\limits_{j=1}^m y_j \leq k-1 = \bar{k}$ \\
+$\qquad y_j \in \{0,1\}$ & $j=1,\dots,m$
+\end{tabular}
+\end{center}
+
+Ci\`o che possiamo fare \`e un rilassamento surrogato dei vincoli (con
+moltiplicatori $\lambda \geq 0$ e $u \geq 0$ che ci porti ad un
+problema KP01. Il nuovo vincolo \`e quindi:
+
+$$
+\lambda \sum\limits_{j=1}^m p_jy_j + u \sum\limits_{j=1}^m y_j \leq
+\lambda b + u (k -1)
+$$
+
+Quindi il nuovo modello \`e:
+
+\begin{center}
+\begin{tabular}{ll}
+$\max \sum\limits_{j=1}^m p_jy_j$\\
+$\qquad \sum\limits_{j=1}^m \tilde{p}_j y_j \leq c$ \\
+$\qquad y_j \in \{0,1\}$ & $j=1,\dots,m$
+\end{tabular}
+\end{center}
+
+Non c'\`e bisogno di preprocessing dato che i coefficienti in funzione
+obiettivo sono positivi, pertanto possiamo procedere a fare il
+\textbf{rilassamento continuo} e a risolverlo in $O(m)$ con
+\textbf{Balas-Zemel}.
+
+\
+
+La complessit\`a totale \`e pertanto $O(n + m)$.
+
+\subsection*{Procedura subgradiente}
+
+I subgradienti dell'ultimo rilassamento sono:
+
+\begin{itemize}
+\item $s(\lambda) := b - \sum\limits_{j=1}^n p_j y_j$
+\item $s(u) := \bar{k} - \sum\limits_{j=1}^n y_j$
+\end{itemize}
+
+Le procedure di aggiornamento dei moltiplicatori sono:
+
+\begin{itemize}
+\item $\lambda := \max\{0, \lambda - \sigma s(\lambda)\}$
+\item $u := \max\{0, u-\sigma s(u)\}$
+\end{itemize}
+
+mentre per aggiornare l'upper bound sar\`a sufficiente $UB := \min \{
+UB, \bar{z}\}$.
+
+\section*{Punto 2}
+
+\textit{Determinare un buon upper bound di tipo lagrangiano con
+  complessit\`a $O(mn)$ (si consideri $\log m \leq n$) e descrivere la
+corrispondente procedura subgradiente}.
+
+\
+
+Rilassiamo in modo lagrangiano (con moltiplicatori $\geq 0$) i vincoli
+3 e 4. La funzione obiettivo diventa:
+
+$$
+\max \sum\limits_{i=1}^n\sum\limits_{j=1}^m x_{ij} \bigr ( p_j -
+p_j\lambda_i - u_j \bigr ) + \sum\limits_{i=1}^n \lambda_i a_i +
+\sum\limits_{j=1}^m u_j
+$$
+
+Il problema residuo \`e:
+
+\begin{center}
+\begin{tabular}{ll}
+$\max \sum\limits_{i=1}^n\sum\limits_{j=1}^m \tilde{p}_{ij}x_{ij}$\\
+$\qquad\sum\limits_{i=1}^n\sum\limits_{j=1}^m x_{ij} \leq \bar{k}$\\
+$\qquad x_{ij} \in \{0,1\}$ & $i=1,\dots,n$, $j=1,\dots,m$ \\
+\end{tabular}
+\end{center}
+
+I costi lagrangiani sono stati deiniti in $O(nm)$. Notiamo che
+abbiamo $n$ problemi KP01 di $m$ variabili (o a scelta $m$ da $n$
+variabili), dunque l'UB lo calcoliamo con:
+
+\vspace{20pt}
+\begin{tabular}{l}
+\textbf{FOR} $i=1,\dots,n$ \textbf{DO}\\
+$\qquad$ \textit{Preprocessing} to remove variables with negative costs\\
+$\qquad$\textbf{SOLVE} LP relaxation of KP01 on $x_{ij}$ variables
+($i$ fixed) with Balas-Zemel\\
+\textbf{SUM} every $\bar{z}_i$ to find UB
+\end{tabular}
+\vspace{20pt}
+
+La complessit\`a ottenuta \`e $O(nm)$.
+
+\end{document}

@@ -1,0 +1,189 @@
+\documentclass[11pt]{book}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[color=yellow]{todonotes}
+\hyphenation{pro-fit-ti}
+
+\parindent=0pt \bigskipamount=20pt
+
+\begin{document}
+
+\chapter*{Esercizio 8}
+
+Sia dato un grafo orientato completo $G=(V,A)$ con
+$V=\{1,2,\dots,n\}$. Ad ogni arco $(i,j) \in A$ sono associati un peso
+$p_{ij}$ ed un tempo $t_{ij}$ (con $t_{ij}\geq 0$). Siano inoltre dati
+due sottoinsiemi disgiunti di archi $S$ e $T$ (con $S \subset A$,
+$T\subset A$, $S\cap T = \emptyset$).Si deve costruire un circuito
+hamiltoniano H tale che:
+
+\begin{itemize}
+\item la somma dei pesi degli archi di H sia massima;
+\item la somma dei tempi degli archi di H sia non superiore ad un
+  valore dato $d$
+\item il numero di archi di H appartenenti a S sia non inferiore al
+  numero di archi di H appartenenti a T
+\item per il rilassamento della terza domanda si definisca la
+  procedura subgradiente con complessit\`a non superiore ad $O(n^3)$
+\end{itemize}
+
+Un possibile modello \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z = \max \sum\limits_{i=1}^n\sum\limits_{j=1}^n p_{ij}x_{ij}$ & & & (1)\\
+  $\qquad \sum\limits_{j=1}^n x_{ij} = 1$ & & $i=1,\dots,n$ & (2)\\
+  $\qquad \sum\limits_{i=1}^n x_{ij} = 1$ & & $j=1,\dots,n$ & (3)\\
+  $\qquad \sum\limits_{i \in R}\sum\limits_{j \in V \textbackslash R}
+  x_{ij} \geq 1$ & & $\forall R \subset V : r \in R$ & (4) \\
+  $\qquad \sum\limits_{i=1}^n\sum\limits_{j=1}^n t_{ij}x_{ij} \leq d$ &
+  & & (5) - b \\
+  $\qquad \sum\limits_{(i,j)\in S} x_{ij} \geq \sum\limits_{(i,j) \in
+    T}x_{ij}$ &&& (6) - c \\
+  $\qquad x_j \in\{0,1\}$ & & $j,i = 1,\dots,n$ & (7) \\
+\end{tabular}
+\end{center}
+
+dove $r$ \`e un vertice qualsiasi di $V$.
+
+\section*{Punto 1}
+
+\textit{Si determini un rilassamento lagrangiano relativo ai vincoli b e c
+risolubile in $O(n^3)$.}
+
+\
+
+Trattandosi di vincoli di disequazione i moltiplicatori saranno $\geq
+0$. Il pro\-ble\-ma \`e di massimo, quindi i termini da aggiungere
+alla f.o. devono essere $\geq 0$, pertanto i vincoli \textit{c}
+verranno posti nella forma \textit{primo membro meno secondo membro},
+mentre i vincoli \textit{b} nella forma \textit{secondo membro meno
+  primo membro}. La funzione obiettivo si pu\`o scrivere come:
+
+$$
+\max \sum\limits_{i=1}^n\sum\limits_{j=1}^np_{ij}x_{ij} + \lambda
+\biggr (d
+-\sum\limits_{i=1}^n\sum\limits_{j=1}^n t_{ij}x_{ij}\biggr ) + \sigma
+\biggr (\sum\limits_{(i,j) \in S}x_{ij} - \sum\limits_{(i,j) \in
+  T}x_{ij} \biggr )
+$$
+
+Esplicitando i vari termini:
+
+$$
+\lambda d + \max \sum\limits_{i=1}^n\sum\limits_{j=1}^n
+\biggr (p_{ij}-\lambda t_{ij} \biggr )x_{ij} + \sigma
+\biggr (\sum\limits_{(i,j) \in S}x_{ij} - \sum\limits_{(i,j) \in
+  T}x_{ij} \biggr )
+$$
+
+A questo punto vorremmo definire i pro\-fit\-ti lagrangiani, ma ci
+troviamo con due sommatorie piuttosto fastidiose. La soluzione
+consiste nel definire i profitti lagrangiani in maniera differenziata
+a seconda che l'arco $(i,j)$ appartenga a S, a T oppure a nessuno dei
+due:
+
+\begin{itemize}
+\item se $(i,j) \in S$: $\tilde{p}_{ij} := p_{ij}-\lambda t_{ij} + \sigma$
+\item se $(i,j) \in T$: $\tilde{p}_{ij} := p_{ij}-\lambda t_{ij} - \sigma$
+\item altrimenti:  $\tilde{p}_{ij} := p_{ij}-\lambda t_{ij}$
+\end{itemize}
+
+La definizione dei profitti lagrangiani richiede $O(n^2)$. Fatto
+ci\`o, il problema rimanente \`e:
+
+\begin{center}
+\begin{tabular}{lp{2cm}ll}
+  $z(\lambda) = \lambda d + \max \sum\limits_{i=1}^n\sum\limits_{j=1}^n \tilde{p}_{ij}x_{ij}$ & & & (1)\\
+  $\qquad \sum\limits_{j=1}^n x_{ij} = 1$ & & $i=1,\dots,n$ & (2)\\
+  $\qquad \sum\limits_{i=1}^n x_{ij} = 1$ & & $j=1,\dots,n$ & (3)\\
+  $\qquad \sum\limits_{i \in R}\sum\limits_{j \in V \textbackslash R}
+  x_{ij} \geq 1$ & & $\forall R \subset V : r \in R$ & (4) \\
+  $\qquad x_j \in\{0,1\}$ & & $j,i = 1,\dots,n$ & (7) \\
+\end{tabular}
+\end{center}
+
+Ci\`o che abbiamo ottenuto \`e esattamente il problema ATSP di
+massimo. Non c'\`e alcun bisogno di passare alla sua formulazione di
+minimo! Sappiamo che applicando l'\textbf{AP relaxation} otteniamo un
+problema rilassato che pu\`o essere risolto in $O(n^3)$. Eliminiamo
+quindi i vincoli di connessione.
+
+\section*{Punto 2}
+
+\textit{Per il rilassamento della domanda precedente si definisca la
+  corrispondente procedura subgradiente con complessit\`a $O(n^3)$.}
+
+\
+
+Come valori per inizializzare la procedura possiamo prendere $UB:=\infty$,
+$\lambda:=0$ e $\sigma :=0$. Ad ogni iterazione si deve risolvere il
+rilassamento (AP relaxation) con i moltiplicatori $\lambda$ e $\sigma$
+correnti ed eventualmente aggiornare l'upper bound con $UB := \min
+\{UB, z(\lambda, \sigma) \}$.
+
+Poi bisogna aggiornare i moltiplicatori e per fare ci\`o abbiamo
+bisogno di definire i subgradienti:
+
+\begin{itemize}
+\item $s(\lambda) := d - \sum\limits_{i=1}^n\sum\limits_{j=1}^n
+  t_{ij}x_{ij}$
+\item $s(\sigma) := \sum\limits_{(i,j)\in S}x_{ij} -
+  \sum\limits_{(i,j) \in T}x_{ij}$
+\end{itemize}
+
+Entrambi i vincoli \textit{b} e \textit{c} sono violati se i
+subgradienti sono minori di 0, pertanto le procedure di aggiornamento
+dei moltiplicatori sono:
+
+\begin{itemize}
+\item $\lambda := \max \{ 0, \lambda - \beta s(\lambda)\}$
+\item $\sigma := \max \{0, \sigma - \beta s(\sigma)\}$
+\end{itemize}
+
+Notiamo che le procedure di aggiornamento dei moltiplicatori cercano
+sempre il massimo, anche se il problema di partenza \`e di
+minimizzazione.
+
+\
+
+Quante iterazioni posso fare della procedura subgradiente? Ci viene
+chiesto di non sforare $O(n^3)$ pertanto il numero di iterazioni
+dovr\`a essere rappresentato da una costante e non da un numero
+dipendente da $n$.
+
+\section*{Punto 3}
+
+\textit{Determinare un ulteriore rilassamento lagrangiano dei vincoli b e c
+(ed eventualmente altri vincoli) che fornisca un buon lower bound in
+$O(n^2)$.
+}
+\
+
+Procediamo esattamente come al punto 1 per definire il rilassamento
+lagrangiano dei vincoli \textit{b} e \textit{c}. Ci\`o che cambia \`e
+che non effettuiamo l'AP relaxation, ma un \textbf{rilassamento
+  lagrangiano dei vincoli di out degree}. Dal momento che dopo il
+primo rilassamento lagrangiano abbiamo trovato un ATSP di massimo, se
+ora rimuoviamo i vincoli di out degree, non ci troviamo davanti ad un
+problema che pu\'o essere scomposto in Shortest Spanning Arborescence
+e Minimum Cost Arc Entering $r$, ma abbiamo \textbf{Longest Spanning
+  Arborescence rooted in $r$} e \textbf{Maximum Cost Arc Entering
+  $r$}. Il problema di trovare l'arborescenza di costo massimo pu\`o
+essere risolto in $O(n^2)$, mentre quello di trovare l'arco entrante
+in $r$ di costo massimo in $O(n)$, quindi la complessit\`a del calcolo
+del lower bound \`e $O(n^2)$ come richiesto.
+
+\section*{Punto 4}
+
+\textit{Per il rilassamento della domanda precedente si definisca la
+  corrispondente procedura subgradiente con complessit\`a $O(n^3)$.}
+
+\
+
+Il procedimento \`e analogo a quello visto al punto 2 con la
+differenza che il metodo per la risoluzione del rilassamento ha
+complessit\`a $O(n^2)$ e non $O(n^3)$, perci\`o, dato che ci viene
+chiesta una procedura con complessit\`a $O(n^3)$ possiamo effettuare
+anche un numero di iterazioni dipendente da $n$.
+
+\end{document}
