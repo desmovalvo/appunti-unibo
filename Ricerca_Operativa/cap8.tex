@@ -1,0 +1,353 @@
+\documentclass[11pt]{book}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{colonequals}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{float}
+\usepackage{fixltx2e}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+
+\newenvironment{sistema}%
+{\left\lbrace\begin{array}{@{}l@{}}}%
+{\end{array}\right.}
+
+
+\title{Appunti di Ricerca Operativa}
+\author{Fabio Viola}
+\date{}
+
+\setcounter{chapter}{7}
+
+\begin{document}
+
+\chapter{Complessit\`a}
+
+\scriptsize
+{\bf Slide}:
+\href{http://www.or.deis.unibo.it/staff_pages/martello/Chapter8.zip}{Complexity}
+\normalsize
+\vspace{20pt}
+
+Con il termine {\bf complessit\`a} possiamo intendere due differenti
+concetti:
+
+\begin{itemize}
+\item {\em complessit\`a di un algoritmo}: \`e una misura del {\em
+  tempo} necessario a portarlo a termine nel caso peggiore;
+
+\item {\em complessit\`a di un problema}: \`e la complessit\`a del
+  miglior algoritmo in grado di risolverlo.
+\end{itemize}
+
+Quando parliamo di {\bf teoria della complessit\`a} ci riferiamo al
+secondo concetto.
+
+Definiamo {\bf istanza} di un problema {\em P} uno specifico caso
+numerico del problema stesso, quindi quando parliamo di complessit\`a
+del problema {\em P} intendiamo una misura del tempo necessario a
+risolvere un'istanza di {\em P}. Quando si parla di {\bf tempo} in
+realt\`a si sta un po' abusando del termine, dal momento che la misura
+pu\`o basarsi su metriche differenti, come ad esempio il numero di
+passi elementari, oppure il numero di secondi impiegati da un
+elaboratore e via dicendo. Ci\`o che conta \`e che il tempo di
+soluzione \`e una funzione della dimensione dell'istanza. Quando
+parliamo di {\bf dimensione} dell'istanza possiamo intendere
+
+\begin{quote}
+il numero di bit necessari per codificarne l'input.  
+\end{quote}
+
+Tale definizione non \`e tuttavia sempre la pi\`u comoda, pertanto si
+preferisce solitamente usare (dato che \`e possibile nella maggior
+parte dei casi) il {\em numero di valori che costituiscono l'input}.
+
+\vspace{11pt} $\blacktriangleright$ {\bf Esempio}. Consideriamo il
+problema {\textsc SEARCH} seguente: dati un valore {\em b} ed un vettore
+$a_1,\dots,a_n$, stabilire se $\exists i:a_i = b$.
+
+Per rappresentare un valore {\em x} in codifica binaria occorrono
+$\lceil log(x)\rceil$ bit. La definizione fornita di dimensione ci
+dice dunque che la dimensione dell'istanza \`e:
+
+\begin{center}
+$\lceil \log n \rceil + \lceil \log b \rceil + \sum\limits_{i=1}^n
+  \lceil \log a_i \rceil$  
+\end{center}
+
+\`E ragionevole assumere di usare per tutti i valori il numero di bit
+richiesto dal pi\`u grande di questi valori. Otteniamo in questo modo
+una stima pi\`u semplice:
+
+\begin{center}
+$(n+2)\lceil \log_2(\max\{ n, a_1, \dots, a_n, b\}) \rceil$  
+\end{center}
+
+Per {\em n} sufficientemente grande la dimensione di un'istanza \`e
+dunque proporzionale a {\em n}. Un algoritmo per risolvere tale
+problema richiede {\em n} confronti nel caso peggiore. Possiamo dire
+che esiste una costante $\alpha$ (dipendente dallo strumento di
+calcolo utilizzato) tale che il tempo di esecuzione sia minore o
+uguale al prodotto di $\alpha$ per {\em n}. Si dice che il problema
+{\textsc SEARCH} richiede tempo $O(n)$. Un problema con simile
+complessit\`a \`e {\bf facile} da risolvere. $\blacktriangleleft$
+\vspace{11pt}
+
+Facciamo un piccolo elenco dei problemi visti fino a questo momento e
+ricapitoliamo la loro complessit\`a:
+
+\vspace{11pt}
+\begin{center}
+\begin{tabular}{|p{5cm}|p{5cm}|}
+\hline\hline
+{\bf Algoritmo} & {\bf Complessit\`a}  \\\hline
+{\textsc SEARCH} & $O(n)$ \\
+{\textsc SST} &  $O(n^2)$ \\
+{\textsc SPP} &  $O(n^2)$ o $O(n^3)$ \\
+{\textsc KP01} &  $O(2^n)$ \\
+{\textsc LPP}  & $O((n-1)!)$  \\
+{\textsc HC, TSP} &  $O((n-1)!)$ \\
+\hline\hline
+\end{tabular}
+\end{center}
+\vspace{11pt}
+
+I primi tre problemi hanno complessit\`a {\bf polinomiale}, gli altri
+hanno complessit\`a {\bf esponenziale} e risultano dunque {\bf
+  difficili}. Per avere un'idea di ci\`o basta dare uno sguardo alla
+seguente tabella:
+
+\vspace{11pt}
+\begin{center}
+\begin{tabular}{l|l|l|l|l|l|l}
+Algoritmo & $n=10$ & $n=20$ & $n=30$ & $n=40$ & $n=50$ & $n=60$ \\
+\hline
+$O(n)$ & $10^{-5}$\textquotesingle \textquotesingle & $2\cdot
+10^{-5}$\textquotesingle \textquotesingle & $3 \cdot
+10^{-5}$\textquotesingle \textquotesingle & $4 \cdot
+10^{-5}$\textquotesingle \textquotesingle & $5 \cdot
+10^{-5}$\textquotesingle \textquotesingle & $6 \cdot
+10^{-5}$\textquotesingle \textquotesingle \\
+
+$o(n^2)$ & $10^{-4}$\textquotesingle \textquotesingle & $4\cdot
+10^{-4}$\textquotesingle \textquotesingle & $9 \cdot
+10^{-4}$\textquotesingle \textquotesingle & $16 \cdot
+10^{-4}$\textquotesingle \textquotesingle & $25 \cdot
+10^{-4}$\textquotesingle \textquotesingle & $36 \cdot
+10^{-5}$\textquotesingle \textquotesingle \\
+
+$O(2^n)$ & $10^{-3}$\textquotesingle \textquotesingle &
+$1$\textquotesingle \textquotesingle & $17,9$\textquotesingle &
+$12,7$gg & $35,7$ anni & $366$ secoli \\
+\end{tabular}
+\end{center}
+\vspace{11pt}
+
+Anche le tecnologia non potr\`a aiutarci in quanto se moltiplicassimo
+la velocit\`a della CPU per 1000, a parit\`a di tempo di calcolo un
+algoritmo $O(n)$ risolver\`a un'istanza 1000 volte pi\`u grande,
+mentre un algoritmo $O(2^n)$ soltanto di 10 volte pi\`u grande.
+
+Purtroppo per la maggior parte dei problemi di ottimizzazione si
+conoscono soltanto algoritmi esponenziali. Possiamo dunque chiederci
+come mai non sono stati trovati algoritmi polinomiali per tali
+problemi, o se mai si troveranno. La teoria della complessit\`a studia
+proprio questo.
+
+\section{Versione riconoscimento di un problema}
+
+Il problema {\textsc HC} visto nel precedente capitolo si differenzia
+dagli altri problemi in quanto non richiede di calcolare il minimo o
+il massimo di una data funzione obiettivo, ma solo di rispondere alla
+domanda {\em il grafo dato possiede un circuito hamiltoniano?}. La sua
+soluzione dunque non \`e un valore, ma un {\em si} oppure un {\em
+  no}. I problemi di questo tipo vengono detti {\bf in versione
+  riconoscimento} ({\textsc RV}) per distinguerli dagli altri che sono
+invece {\bf in versione ottimizzazione} (\textsc{OV}). 
+
+Nonostante la teoria della complessit\`a tratti problemi in versione
+riconoscimento, \`e possibile comunque applicarla anche a problemi
+{\textsc OV} in quanto ogni problema pu\`o essere posto in entrambe le
+forme.
+
+\vspace{11pt}
+$\blacktriangleright$ {\bf Esempio}. Prendiamo in considerazione il
+problema {\em KP01} che indichiamo con $KP01_{OV}$. Possiamo porlo
+in forma {\em RV} fornendo in input un valore $\vartheta$ e
+formulandolo come:
+
+\begin{quote}
+il problema knapsack 0-1 dato possiede almeno una soluzione di valore
+maggiore o uguale a $\vartheta$?
+\end{quote}
+
+Dal punto di vista della possibilit\`a di trovare o meno la soluzione
+in tempo polinomiale, le due versioni hanno la stessa
+difficolt\`a. Per convincerci di ci\`o basta osservare che:
+
+\begin{enumerate}
+\item un algoritmo che risolve il problema in OV sta risolvendo
+  contemporaneamente anche il problema in RV: la soluzione di
+  $KP01_{RV}$ \`e {\em si} se e solo se il valore della soluzione di
+  $KP01_{OV}$ \`e maggiore o uguale a $\vartheta$;
+
+\item un algoritmo che risolve il problema in RV risolve il
+  corrispondente problema in OV mediante una serie di esecuzioni in
+  {\em ricerca binaria}. Ad esempio sia {\em U} un upper bound di
+  $KP01_{OV}$. Alla prima iterazione si pone $\vartheta \colonequals
+  \frac{1}{2}U$. Se la soluzione \`e {\em si}, si riesegue con
+  $\vartheta \colonequals \frac{3}{4}U$, altrimenti con $\vartheta
+  \colonequals \frac{1}{4}U$. Si continua allo stesso modo dimezzando
+  ad ogni esecuzione il campo dei valori possibili, fino a trovare ue
+  valori consecutivi {\em z} e {\em z+1} tali per cui la risposta \`e
+  {\em si} per $z$, {\em no} per $z+1$.
+
+  Il numero di esecuzioni \`e $\lceil \log_2 U \rceil$, che \`e
+  polinomiale sotto l'ipotesi che {\em U} sia rappresentabile su un
+  numero di bit polinomiale nella dimensione del problema. Poich\'e un
+  prodotto di polinomi \`e un polinomio, un algoritmo polinomiale per
+  $KP01_{RV}$ risolverebbe $KP01_{OV}$ in tempo polinomiale.
+\end{enumerate}
+
+$\blacktriangleleft$
+\vspace{11pt}
+
+Nel resto del capitolo parlando di {\em problema} intenderemo sempre
+un problema in RV.
+
+\section{Classi $\mathcal{P}$ ed $\mathcal{NP}$}
+
+Per la teoria della complessit\`a, i problemi si dividono in due
+classi: $\mathcal{P}$ ({\em Polynomial}) e $\mathcal{NP}$ ({\em Non
+  deterministic Polynomial}). La prima include i problemi in RV per i
+quali si conosce un algoritmo polinomiale, la seconda include quelli
+per i quali non si pu\`o escludere l'esistenza di un algoritmo
+polinomiale. La seconda classe include la prima. Se un problema non
+appartiene a ${\mathcal{NP}}$ (e dunque nemmeno a $\mathcal{P}$ visto
+che \`e contenuto in esso), allora non c'\`e speranza di poter trovare
+un algoritmo polinomiale che lo risolva.
+
+Si preferisce dire che la classe $\mathcal{P}$ include tutti i
+problemi risolubili su una {\em macchina di Turing
+  deterministica}. Per i problemi della classe $\mathcal{NP}$ il
+discorso \`e pi\`u complicato. Formalmente tale classe include tutti i
+problemi risolubili in tempo polinomiale su una {\em macchina di
+  Turing \underline{non} deterministica}, cio\`e su una macchina che
+idealmente effettua la scelta giusta ogni volta che c'\`e da prendere
+una decisione. Si pu\`o immaginare tale macchina come un algoritmo
+fortunato che ad ogni iterazione genera sempre il {\em figlio
+  giusto}. Un algoritmo del genere \`e chiaramente ideale e
+risolverebbe in tempo polinomiale qualsiasi probelma. Un'altra
+formulazione \`e quella che ci dire che la classe di problemi
+$\mathcal{NP}$ include i problemi tali che se la risposta \`e {\em
+  si}, allora la si pu\`o dare in tempo polinomiale (ad esempio nel
+caso dei problemi HC basta esibire l'output). In un tale problema si
+pu\`o sostituire la fortuna con una teoria che permetta di evitare
+l'enumerazione completa.
+
+Nonostante molti dei problemi visti sia $\mathcal{P}$, purtroppo nella
+realt\`a la quasi totalit\`a dei problemi importanti di ottimizzazione
+\`e $\mathcal{NP}$ ma non si conosce un algoritmo polinomiale per
+risolverli (dunque appartiene a $\mathcal{NP}$ escluso $\mathcal{P}$).
+
+Introduciamo uno strumento fondamentale per l'analisi di tali
+problemi, le {\bf trasformazioni polinomiali}:
+
+\begin{quote}
+Un problema {\em A} di $\mathcal{NP}$ \`e trasformabile
+polinomialmente in un altro problema {\em B} di $\mathcal{NP}$, $(A
+\propto B)$, se esiste un algoritmo polinomiale che per ogni istanza
+di {\em A} definisce un'istanza di {\em B} che ha soluzione {\em si}
+se e solo se l'istanza di {\em A} ha soluzione {\em si}.
+\end{quote}
+
+\vspace{11pt} $\blacktriangleright$ {\bf Esempio}. COnsideriamo il
+problema di flusso massimo con capacit\`a anche sui vertici ({\em
+  problema A}). Abbiamo visto che \`e possibile trasformare tale
+problema in un problema MFP (che costituisce nel nostro caso il {\em
+  problema B}) che ha la stessa soluzione. La trasformazione richiede
+un tempo polinomiale $O(n^2)$, ed \`e valida anche per la RV dei due
+problemi. Il primo problema \`e dunque trasformabile polinomialmente
+nel secondo. $\blacktriangleleft$
+\vspace{11pt}
+
+{\bf Propriet\`a}: se $A \propto B$ e si conosce un algoritmo
+polinomiale per $B$, allora si ha anche on algoritmo polinomiale per
+$A$.
+
+\vspace{11pt} $\square$ {\bf Dimostrazione}: data un'istanza di {\em
+  A}, la si trasforma in tempo polinomiale in un'istanza equivalente
+di {\em B} e si risolve quest'ultima in tempo polinomiale. Poich\'e la
+somma di polinomi \`e un polinomio, consegue la tesi (visto che usiamo
+un algoritmo polinomiale per trovare un problema {\em B}
+dall'algoritmo polinomiale).  $\blacksquare$
+\vspace{11pt}
+
+{\bf Corollario}: se $A \propto B$ e $B \propto C$, allora $A \propto
+C$.
+
+\vspace{11pt} $\square$ {\bf Dimostrazione}: la somma di polinomi \`e
+un polinomio.  $\blacksquare$
+\vspace{11pt}
+
+\section{Problemi $\mathcal{NP}$-completi}
+
+Un problema {\em A} di $\mathcal{NP}$ si dice {\bf $\mathcal{NP}$-completo}
+se, per ogni problema {\em B} di $\mathcal{NP}$, si ha $B \propto A$. 
+
+In poche parole un problema {\em A} $\mathcal{NP}$-completo \`e tale
+per cui un eventuale algoritmo polinomiale per risolverlo
+consentirebbe di risolvere tutti i problemi di $\mathcal{NP}$, cio\`e
+tutti i problemi di ottimizzazione. Questa definizione \`e
+potentissima.
+
+Esistono dunque dei problemi $\mathcal{NP}$-completi? Per stabilire
+che $A$ \`e $\mathcal{NP}$-completo occorre:
+
+\begin{enumerate}
+\item dimostrare che {\em A} \`e in $\mathcal{NP}$ (di solito \`e
+  facile usando la definizione);
+\item per questo punto ci sono due possibilit\`a:
+  
+  \begin{itemize}
+  \item Si pu\`o dimostrare che per ogni problema $B \in
+    \mathcal{NP}$, vale $B \propto A$ (molto difficile);
+  \item Si pu\`o dimostrare che esiste un problema
+    $\mathcal{NP}$-completo {\em B} tale che $B \propto A$ (pi\`u
+    facile, ma possibile solo se si conosce gi\`o un problema
+    $\mathcal{NP}$-completo).
+  \end{itemize}
+
+\end{enumerate}
+
+Dal momento che fino al 1970 non si conoscevano problemi
+$\mathcal{NP}$-completi non si poteva usare la seconda
+definizione. Oggi invece possiamo perch\'e sono stati scoperti dei
+problemi $\mathcal{NP}$-completi. Il primo fu il problema {\em SAT}:
+
+\begin{quote}
+{\em Satisfability Problem} (SAT): date {\em n} variabili booleane
+$x_1,\dots,x_n$ ($x_i \in \{Vero,Falso\}$) ed una formula booleana
+(con operatori {\em and}, {\em or}, {\em not}), esiste un assegnamento
+di valori $x_i$ per cui il risultato \`e vero?
+\end{quote}
+
+Dal momento che conosciamo SAT possiamo trasformare ogni problema in
+$\mathcal{NP}$ nel problema di stabilire se una formula booleana \`e
+soddisfattibile.
+
+Grazie alla scoperta del problema SAT, sono poi stati scoperti
+rapidamente molti altri problemi $\mathcal{NP}$-completi. Fra questi
+troviamo la versione di riconoscimento di LP01, HC sia per grafi
+orientati che non orientati, KP01. Si dimostr\`o alla fine degli anni
+settanta che tutti i problemi noti per i quali non si conoscono
+algorimi polinomiali sono $\mathcal{NP}$-completi.
+
+{\bf TODO: ma dunque per i problemi $\mathcal{NP}$-completi esiste o
+  no un algoritmo polinomiale?}
+
+\end{document}

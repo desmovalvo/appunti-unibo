@@ -1,0 +1,490 @@
+\documentclass[11pt]{book}
+\usepackage{hyperref}
+\usepackage{colonequals}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{float}
+\usepackage{fixltx2e}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+
+\newenvironment{sistema}%
+{\left\lbrace\begin{array}{@{}l@{}}}%
+{\end{array}\right.}
+
+
+\title{Appunti di Ricerca Operativa}
+\author{Fabio Viola}
+\date{}
+
+\setcounter{chapter}{8}
+
+\begin{document}
+
+\chapter{Rilassamenti}
+
+\scriptsize
+{\bf Slide}:
+\href{http://www.or.deis.unibo.it/staff_pages/martello/Chapter9.zip}{Relaxations}
+\normalsize
+\vspace{20pt}
+
+Gli algoritmi branch and bound e branch and cut sono gli algoritmi
+pi\`u utilizzati per la soluzione ottima di problemi
+$\mathcal{NP}$-difficili \footnote{Un problema H \`e
+  $\mathcal{NP}$-difficile se e solo se esiste un problema
+  $\mathcal{NP}$-completo L che \`e polinomialmente riducibile ad H,
+  ovvero tale che $L \leq_T H$. In altre parole, L deve poter essere
+  risolto in tempo polinomiale da una macchina di Turing dotata di un
+  oracolo per H. Da questa definizione si ricava che i problemi
+  $\mathcal{NP}$-difficili sono non meno difficili dei problemi
+  $\mathcal{NP}$-completi, che a loro volta sono per definizione i più
+  difficili delle classi P/NP.}.
+
+
+Per far si che questi algoritmi siano efficaci sono necessari alcuni
+ingredienti:
+\begin{itemize}
+\item la progettazione dell'albero decisionale e della strategia di
+  eslporazione;
+\item l'uso di rilassamenti per calcolare bound e per realizzare
+  procedure di riduzione;
+\item l'uso di algoritmi approssimati per determinare rapidamente
+  soluzioni ammissibili.
+\end{itemize}
+
+\section{Generalit\`a}
+
+Considereremo un problema di massimizzazione $\mathcal{NP}$-difficile definito da
+un insieme F delle soluzioni ammissibili (supposto finito) e da una
+funzione obiettivo $z:F \rightarrow R^1$ che associa ad un punto della
+regione ammissibile un valore. La coppia $(z,F)$ indicher\`a il
+problema di individuare l'elemento $y^* \in F$ (cio\`e il punto $y^*$
+della regione ammissibile) tale che:
+
+\begin{center}
+$z(y^*) \geq z(y) \forall y \in F$
+\end{center}
+
+cio\`e tale che la funzione $z$ calcolata in quel punto sia maggiore
+che in ogni altro punto.
+
+
+Riprendiamo il branch and bound. Sia $P^0 = (z, F(P^0))$ il problema
+da risolvere ($F(P^0)$ \`e chiaramente la regione ammissibile del
+problema originale $P^0$). Sia $Z(P^0) = \max \{ z(y) : y \in F(P^0)
+\}$ il valore della soluzione ottima del problema $P^0$. Il metodo
+branch and bound consiste nella suddivisione del problema originale
+$P^0$ in sottoproblemi $P^1,\dots,P^{n_0}$ tali per cui la loro unione
+rappresenti il problema originale. La suddivisione si ottiene
+dividendo la regione ammissibile $F(P^0)$ del problema originale in
+sottoinsiemi $F(P^1),\dots,F(P^{n_0})$ tali che la loro unione sia
+pari a $F(P^0)$. Se per un generico sottoproblema $P^k$ la soluzione
+\`e $Z(P^k) = \max \{ Z(P^1), \dots, Z(P^{n_0})\}$, allora la soluzione
+del problema originale sar\`a data dal massimo delle soluzioni dei
+sottoproblemi (trattandosi di un problema di massimo), dunque $Z(P^0)
+= \max \{ Z(P^1), \dots, Z(P^{n_0}) \}$. In pratica risolvere il
+problema $P^0$ corrisponde a risolvere $P^k$ con $k = 1, \dots,
+n_0$. In un algoritimo branch and bound, risolvere pu\`o avere tre
+diversi significati:
+
+\begin{itemize}
+\item determinare la soluzione ottima di $P^k$;
+\item dimostrare che la regione ammissibile del problema $P^k$ \`e vuota;
+\item dimostrare che la soluzione del problema $P^k$ \`e minore o
+  uguale di $Z$ che \`e il valore della miglior soluzione ammissibile
+  ottenuta in precedenza.
+\end{itemize}
+
+Generalmente \`e preferibile fare in modo che le regioni ammissibili
+dei sottoproblemi non si sovrappongano, per limitare l'ampiezza dei
+problemi. (In formule: $F(P^i) \cup F(P^j) = \emptyset \forall P^i,
+P^j : i \neq j$).
+
+Per ogni problema che non si riesce a risolvere (dove con risolvere
+intendiamo il concetto espresso sopra) si ripete la suddivisione in
+sottoproblemi ed in questo modo viene dunque generato l'albero
+decisionale che \`e una caratteristica del branch and bound).
+
+Aspetto fondamentale degli algoritmi di branch and bound \`e il calcolo
+per ogni sottoproblema $P^k$ di un valore $U(P^k)$, che chiamiamo
+upper bound, tale che $U(P^k) \geq Z(P^k)$, cio\`e tale che la
+soluzione del problema $P^k$ sia minore o uguale all'upper bound. In
+questo modo \`e possibile risolvere il sottoproblema come nel terzo
+punto del precedente elenco, cio\`e possiamo verificare che l'upper
+bound sia o meno minore o uguale ala miglior soluzione ammissibile
+ottenuta fino a quel momento. Come facciamo a trovare un upper bound
+(o un lower bound se il problema \`e di minimizzazione)? Si fa tramite
+i rilassamenti.
+
+Un rilassamento di un problema $P^k = (z, F(P^k))$ \`e un problema
+$R(P^k) = (z_r, F_r(P^k))$ che soddisfa due condizioni:
+
+\begin{enumerate}
+\item $F(P^k) \subseteq F_r(P^k)$, cio\`e la regione ammissibile del
+  sottoproblema $P^k$ \`e contenuta nella regione ammissibile del
+  rilassamento;
+\item $z_r(y) \geq z(y) \forall y \in F(P^k)$, cio\`e la funzione
+  rilassamento, per ogni suo punto deve assumere un valore maggiore o
+  uguale a quello del sottoproblema $P^k$.
+\end{enumerate}
+
+L'upper bound sar\`a quindi definito come:
+\begin{center}
+$U(P^k) = Z(R(P^k)) = \max \{ z_r(y) : y \in F_r (P^k) \}$
+\end{center}
+
+La definizione che abbiamo dato ora di rilassamento \`e pi\`u ampia di
+quella utilizzata per il rilassamento continuo per il quale si ha
+solamente $F(P^k) \subset F_r(P^k)$. Inoltre con la definizione di
+rilassamento data, possiamo anche modificare la funzione obiettivo in
+modo tale da soddisfare la condizione 2. Come si realizza il
+rilassamento? Vi sono a disposizione pi\`u modi differenti, che seguono
+due criteri spesso contrastanti:
+
+\begin{itemize}
+\item il valore della soluzione del rilassamento dev'essere il pi\`u
+  basso possibile in modo da essere il pi\`u possibile prossimo al
+  valore della soluzione ottima del sottoproblema $P^k$;
+\item il problema rilassato dev'essere semplice da calcolare.
+\end{itemize}
+
+I tipi di rilassamento che presenteremo saranno illustrati facendo
+riferimento al problema LP01:
+
+\vspace{11pt}
+\begin{center}
+\begin{tabular}{l}
+$Z(P) = \max \sum \limits_{j=1}^n v_j x_j$\\
+$\phantom{Z(P) = max} \sum \limits_{j=1}^n a_{ij}x_j \leq b_i \qquad (i=1,\dots,m)$\\
+$\phantom{Z(P) = max} \sum \limits_{j=1}^n d_{kj}x_j = e_k \qquad (k=1,\dots,l)$\\
+$\phantom{Z(P) = max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$
+\end{tabular}
+\end{center}
+\vspace{11pt}
+
+
+Chiaramente i vincoli potrebbero essere tutti espressi come
+disequazioni o come equazioni, ma manterremo la distinzione per
+evidenziare propriet\`a diverse. I rilassamenti che vedremo si
+estendono ad un ILP generale.
+
+\section{Rilassamento per eliminazione}
+
+Il metodo pi\`u semplice per rilassare un problema \`e quello di
+eliminare uno o pi\`u vincoli in modo da ottenere un problema ben
+strutturato (TODO: cosa intende con ben strutturato?) e quindi pi\`u
+semplice da risolvere. Eliminando i vincoli si ottiene lo stesso
+problema, ma con una regione ammissibile pi\`u ampia.
+
+Supponiamo per esempio di voler eliminare dal problema LP01 indicato
+in precedenza tutti i vincoli con equazioni. Otterremmo:
+
+\vspace{11pt}
+\begin{center}
+\begin{tabular}{l}
+$Z(E(P)) = \max \sum \limits_{j=1}^n v_j x_j$\\
+$\phantom{Z(E(P)) = max} \sum \limits_{j=1}^n a_{ij}x_j \leq b_i \qquad (i=1,\dots,m)$\\
+$\phantom{Z(E(P)) = max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$
+\end{tabular}
+\end{center}
+\vspace{11pt}
+
+Questo problema \`e noto come problema knapsack multidimensionale 0-1
+che \`e un caso particolare di problema knapsack. In questo tipo di
+problema ogni oggetto ha $m$ pesi, infatti abbiamo $m$
+sommatorie/vincoli. Questi che abbiamo volgarmente chiamato pesi,
+possono essere ad esempio un peso vero e proprio, un volume, un indice
+di tossicit\`a ecc. Se eliminassimo anche tutti i vincoli con
+disequazioni lasciandone solo uno, otterremmo un problema KP01.
+
+\`E necessaria un'osservazione: se la soluzione ottima $x^*$ di $E(P)$
+\`e ammissibile per il problema originale $P$ (cio\`e rispetta comunque
+i vincoli eliminati), allora chiaramente \`e ottima anche per $P$.
+
+\section{Rilassamento continuo}
+
+Sempre con riferimento al problema LP01, il rilassamento continuo
+consiste nel sostituire i vincoli $x_j \in \{0,1\}$ con $0 \leq x_j
+\leq 1$. In questo modo si ottiene un problema di programmazione
+lineare che chiamiamo $C(P)$. Se i coefficienti della funzione
+obiettivo sono interi, l'upper bound pu\`o essere rinforzato come
+$\lfloor Z(C(P))\lfloor$ (TODO: perche e cosa intende?). Anche in
+questo caso la soluzione ottima $x^*$ di $C(P)$ \`e ammissibile per $P$
+(cio\`e \`e intera), allora \`e ottima per $P$.
+
+Possiamo osservare che per un generico rilassamento $R$:
+\begin{itemize}
+\item se il rilassamento $R(P)$ \`e impossibile, allora lo \`e anche $P$
+\item se $R(P)$ \`e illimitato, non si pu\`o dire nulla su $P$. Nel caso
+  del rilassamento continuo, se $C(P)$ \`e illimitato, allora $P$ pu\`o
+  solo essere illimitato o impossibile.
+\end{itemize}
+
+\section{Rilassamento surrogato}
+
+Vediamo in due passi come si realizza questo rilassamento:
+
+\begin{enumerate}
+
+\item Si sceglie un insieme di vincoli (ad esempio le disequazioni
+  del solito problema LP01) e si aggiunge al problema originale {\em
+    P} il vincolo ridondante:
+
+  \begin{center}
+    $\sum\limits_{i=1}^m \pi_i \sum\limits_{j=1}^n a_{ij}x_j \leq
+    \sum_{i=1}^m \pi_i b_i$
+  \end{center}
+
+  con $\pi_i \geq 0 \forall i$ {\bf moltiplicatori surrogati}. In
+  pratica abbiamo moltiplicato sia a destra che a sinistra per la
+  sommatoria di $\pi_i$ che va da {\em 1} a {\em m}. Il problema \`e
+  inalterato perch\'e ogni soluzione ammissibile per il nuovo problema
+  \`e anche ammissibile per il problema originale.
+
+\item Si eliminano i vincoli scelti (cio\`e le disequazioni
+  precedenti) ottenendo il {\bf rilassamento surrogato}:
+
+  
+  \vspace{11pt}
+  \begin{center}
+    \begin{tabular}{l}
+      $Z(S(P,\pi)) = \max \sum \limits_{j=1}^n v_j x_j$\\
+      $\phantom{Z(S(P,\pi)) = max} \sum \limits_{j=1}^n \hat{a}_{ij}x_j \leq \hat{b}$\\
+      $\phantom{Z(S(P,\pi)) = max} \sum \limits_{j=1}^n d_{kj}x_j = e_k \qquad (k=1,\dots,l)$\\
+      $\phantom{Z(S(P,\pi)) = max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$
+    \end{tabular}
+  \end{center}
+  \vspace{11pt}    
+  
+  dove $\hat{a}_j = \sum\limits_{i=1}^m \pi_ia_{ij}$ ($j=1,\dots,n$) e
+  $\hat{b} = \sum\limits_{i=1}^m \pi_ib_i$. In poche parole abbiamo
+  sostituito un insieme di vincoli con il vincolo (chiaramente pi\`u
+  debole) ottenuto da una loro somma pesata.  
+
+\end{enumerate}
+
+Anche qui, se la soluzione ottima $x^*$ di $S(P,\pi)$ \`e ammissibile
+per $P$ allora \`e la soluzione ottima per $P$. Il valore di
+$Z(S(P,\pi))$ \`e un upper bound valido per qualunque vettore di
+moltiplicatori surrogati non negativi. A questo punto \`e giusto
+dunque chiedersi {\bf come} si trova il miglior vettore di
+moltiplicatori surrogati, cio\`e quello che produce l'upper bound
+pi\`u basso. Questo problema \`e detto {\bf problema surrogato duale};
+consiste nel determinare:
+
+\begin{center}
+$Z(S(P,\pi^*)) = \min\limits_{\pi \geq 0}\{ Z(S(P,\pi))\}$  
+\end{center}
+
+\section{Rilassamento lagrangiano}
+
+Mentre i rilassamenti visti finora utilizzano soltanto la condizione
+A, cio\`e sostituiscono la regione ammissibile con una pi\`u ampia
+senza variare la funzione obiettivo, i rilassamenti lagrangiani
+utilizzano anche la condizione B, dunque oltre ad ampliare la regione
+ammissibile modificano anche la funzione obiettivo.
+
+Dal momento che tale rilassamento cambia a seconda che si applichi ad
+equazioni o disequazioni, vedremo separatamente i due casi, iniziando
+dal secondo.
+
+\subsection{Applicazione del rilassamento lagrangiano a disequazioni}
+
+Procediamo illustrando i due passi che ci portano ad ottenere il
+rilassamento:
+
+\begin{enumerate}
+
+\item Si sceglie un insieme di disequazioni (ad esempio tutte le
+  disequazioni) e si aggiunge alla funzione obiettivo un termine che
+  sia non negativo in tutti i punti che rispettano i vincoli (cio\`e
+  un termine che sia non negativo nella regione ammissibile).
+
+  Scelti {\em m} {\bf moltiplicatori lagrangiani} $\lambda_i \geq 0$,
+  la funzione obiettivo viene modificata in modo da penalizzare
+  l'eventuale violazione dei vincoli:
+
+  \begin{center}
+    $\max \sum\limits_{j=1}^n v_jx_j + \sum\limits_{i=1}^m
+    \lambda_i(b_i - \sum\limits_{j=1}^n a_{ij}x_j)$
+  \end{center}
+
+  Il problema cos\`i riformulato fornisce quindi un upper bound
+  valido. 
+
+%% Questa formulazione pu\`o essere ricondotta con un fantasioso esempio
+%% ad un cercatore di funghi che \`e obbligato a restare in una
+%% determinata zona, ma pagando una penale pu\`o avventurarsi anche nella
+%% zona proibita. La penale cresce con l'allontanarsi dal confine. Se il
+%% cercatore rimane invece nella zona
+
+\item Si eliminano i vincoli scelti, ottenendo il {\bf rilassamento
+  lagrangiano}: 
+
+\vspace{11pt}
+\begin{center}
+\begin{tabular}{l}
+$Z(L(P,\lambda)) = \sum\limits_{i=1}^m \lambda_i b_i +  \max \sum \limits_{j=1}^n \hat{v}_j x_j$\\
+$\phantom{Z(P) = max} \sum \limits_{j=1}^n d_{kj}x_j = e_k \qquad (k=1,\dots,l)$\\
+$\phantom{Z(P) = max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$
+\end{tabular}
+\end{center}
+\vspace{11pt}
+
+dove $\hat{v}_j = v_j - \sum\limits_{i=1}^m \lambda_i a_{ij}$, ($j =
+1, \dots, n$). Si osservi che il termine $\sum\limits_{i=1}^m
+\lambda_i b_i$ \`e indipendente da $x$.
+  
+\end{enumerate}
+
+Rispetto agli altri rilassamenti abbiamo una differenza importante: in
+questo, una soluzione ottima $x^*$ per il rilassamento $L(P,\lambda)$
+non \`e detto che sia ottima per $P$, perch\'e, lo ricordiamo, in
+questo tipo di rilassamento abbiamo facolt\`a di variare la funzione
+di partenza. L'ottimo coincide se sia {\em P} che $L(P, \lambda)$
+hanno lo stesso valore nel punto ottimo. Questo caso si verifica se:
+
+\begin{center}
+$\sum\limits_{i=1}^m \lambda_i (b_i - \sum\limits_{j=1}^n a_{ij}x_j^*)
+  = 0$
+\end{center}
+
+cio\`e se la soluzione del rilassamento ha moltiplicatore nullo per
+ogni vincolo o se il vincolo \`e soddisfatto con uguaglianza per ogni
+moltiplicatore non nullo. Questa condizione \`e sufficiente, ma non
+necessaria. 
+
+Il {\bf problema lagrangiano duale} \`e determinare $\lambda^*$ tale
+che:
+
+\begin{center}
+$Z(L(P,\lambda^*)) = \min_{\lambda \geq 0} \{ Z(L(P,\lambda)) \}$  
+\end{center}
+
+\subsection{Applicazione del rilassamento lagrangiano ad equazioni}
+
+
+\begin{enumerate}
+  
+\item Scegliamo in questo caso un insieme di equazioni, ad esempio
+  tutte quelle del nostro problema LP01. A questo punto aggiungiamo
+  alla funzione obiettivo un termine che, al contrario del caso con le
+  disequazioni, sia nullo in ogni punto che rispetta i vincoli (cio\`e
+  in ogni punto della regione ammissibile). Scelti $l$ {\bf
+    moltiplicatori lagrangiani} $\lambda_k \gtreqless 0$, la funzione
+  modificata \`e:
+
+  \begin{center}
+    $\max \sum\limits_{j=1}^n v_jx_j + \sum\limits_{k=1}^l \lambda_k
+    (e_k - \sum\limits_{j=1}^n d_{kj}x_j)$
+  \end{center}
+
+  In questo caso vanno bene anche moltiplicatori negativi.
+
+\item Adesso eliminiamo le equazioni scelte ed otteniamo il {\bf
+  rilassamento lagrangiano}:
+
+  \vspace{11pt}
+  \begin{center}
+    \begin{tabular}{l}
+      $Z(L(P,\lambda)) = \sum\limits_{k=1}^l \lambda_ke_k + \max \sum
+      \limits_{j=1}^n \hat{v}_j x_j$\\
+
+      $\phantom{Z(Spi)) = max} \sum\limits_{j=1}^n a_{ij}x_j \leq
+      b_i \qquad (i=1,\dots,m)$\\ 
+      $\phantom{Z(Spi)) = max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$\\
+    \end{tabular}
+  \end{center}
+  \vspace{11pt}    
+
+  dove $\hat{v}_j = v_j - \sum\limits_{k=1}^l \lambda_k d_{kj}$. Se la
+  soluzione ottima $x^*$ di $L(P,\lambda)$ \`e ammissibile per {\em
+    P}, allora essa \`e ottima per {\em P}. Infatti in qualunque
+  soluzione ammissibile il termine aggiuntivo della funzione obiettivo
+  \`e nullo, per cui pu\`o capitare solo che la soluzione ottima del
+  rilassamento sia fuori dalla regione ammissibile di {\em P}, o che
+  se \`e all'interno della regione ammissibile, allora coincide con la
+  soluzione ottima di {\em P}. 
+
+  Il {\bf problema lagrangiano duale} \`e:
+
+  \begin{center}
+  $Z(L(P, \lambda^*)) = \min\limits_\lambda \{ Z(L(P, \lambda))\}$
+  \end{center}
+
+
+\end{enumerate}
+
+
+\section{Rilassamento per decomposizione}
+
+Quando la struttura del problema lo consente (TODO: e cio\`e quando?)
+pu\`o convenire definire due rilassamenti pi\`u semplici, la cui
+somma dia un upper bound valido per il problema originale.
+
+\begin{enumerate}
+
+\item si sceglie un sottoinsieme di vincoli (ad esempio le equazioni
+  del nostro esempio LP01) e lo si esprime mediante nuove variabili
+  {\em y}. Si sceglie una parte della funzione obiettivo e si esprime
+  anch'essa in funzione di {\em y}. Questa e l'altra parte della
+  funzione obiettivo andranno pesate con due moltiplicatori $\alpha$ e
+  $\beta$ tali che $\alpha + \beta = 1$ (spesso si scelgono entrambi
+  pari a $\frac{1}{2}$). Se a questo punto si aggiunge il vincolo che
+  $x$ ed $y$ abbiano lo stesso valore (TODO: e che senso ha???) si
+  ottiene un problema equivalente a quello dato:
+
+  \vspace{11pt}
+  \begin{center}
+    \begin{tabular}{l}
+      $\max \alpha \sum \limits_{j=1}^n v_j x_j + \beta
+      \sum\limits_{j=1}^n v_jy_j$\\
+      $\phantom{= max} \sum \limits_{j=1}^n a_{ij}x_j \leq b_i \qquad (i=1,\dots,m)$\\
+      $\phantom{= max} \sum \limits_{j=1}^n d_{kj}x_j = e_k \qquad (k=1,\dots,l)$\\
+      $\phantom{= max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$\\
+      $\phantom{= max} y_j \in \{0,1\} \qquad (j=1,\dots,n)$\\
+      $\phantom{= max} y_j = x_j \qquad (j=1,\dots,n)$\\
+    \end{tabular}
+  \end{center}
+  \vspace{11pt}    
+
+\item Si esegue il rilassamento lagrangiano dei nuovi vincoli
+  ottenendo il {\bf rilassamento per decomposizione}:
+
+  \vspace{11pt}
+  \begin{center}
+    \begin{tabular}{l}
+      $Z(D(P,\lambda)) = \max \sum \limits_{j=1}^n (\alpha v_j + \lambda_j) x_j +
+      \sum\limits_{j=1}^n (\beta v_j - \lambda_j)y_j$\\
+      $(A)\phantom{= max} \sum \limits_{j=1}^n a_{ij}x_j \leq b_i \qquad (i=1,\dots,m)$\\
+      $(B)\phantom{= max} \sum \limits_{j=1}^n d_{kj}x_j = e_k \qquad (k=1,\dots,l)$\\
+      $(C)\phantom{= max} x_j \in \{0,1\} \qquad (j=1,\dots,n)$\\
+      $(D)\phantom{= max} y_j \in \{0,1\} \qquad (j=1,\dots,n)$\\
+    \end{tabular}
+  \end{center}
+  \vspace{11pt}    
+  
+\end{enumerate}
+
+Sia $DX(P,\lambda)$ il problema nelle variabili {\em x} di
+massimizzare il primo termine del rilassamento sotto i vincoli A e
+C. Sia $DY(P,\lambda)$ il problema nelle variabili {\em y} di
+massimizzare il secondo termine della funzione obiettivo sotto i
+vincoli B e D. SI ha allora l'upper bound $Z(D(P, \lambda)) = Z(DX(P,
+\lambda)) + Z(DY(P, \lambda))$.
+
+Trattandosi di un rilassamento lagrangiano di equazioni, se le
+equazioni ottime $x^*$ e $y^*$ dei due problemi sono uguali, allora
+$x^*$ \`e ottima per {\em P}. Il {\bf problema di decomposizione
+  duale} \`e:
+
+\begin{center}
+$Z(D(P, \lambda^*)) = \min_\lambda\{ Z(D(P,\lambda)) \}$  
+\end{center}
+
+
+\end{document}
